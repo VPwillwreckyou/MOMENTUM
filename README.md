@@ -245,4 +245,4 @@ These are explicit product/engineering boundaries, not hidden placeholders. The 
 
 ## License
 
-No license has been assigned. The owner should choose one before public distribution.
+Released under the [MIT License](LICENSE). You are free to use, modify and distribute MOMENTUM — including for commercial purposes — with attribution.
