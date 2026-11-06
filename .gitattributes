@@ -8,6 +8,7 @@
 
 # The gradle shell wrapper requires LF
 gradlew text eol=lf
+*.sh text eol=lf
 
 # Binaries
 *.jar binary

@@ -10,6 +10,7 @@ MOMENTUM uses a shared web client for all platforms. The platform shells must no
 | Windows | Installable PWA + packaged Electron app | PWA offline, desktop layout, packaged embedded Java backend, Groq key, provider lock | Electron window launch/UX on an interactive desktop; NSIS/portable installer |
 | Android | Capacitor 8 native project | Web asset sync, generated project, icons/splash, responsive UI | Gradle build/emulator/device test; needs Android SDK |
 | iOS | Capacitor 8 native project | Native project generated, icons/splash | Xcode build/simulator/device test; needs macOS + Xcode |
+| Linux / macOS | Shared web client + `scripts/momentum.sh` launcher | Script syntax and command flow (unit-level); health/status logic reuses the same jar | Full on-hardware launch pass (bash, curl, browser opener behavior) |
 
 The Java API and web client are shared. Authentication, AI and encrypted sync require network access to a running Java service; goals, planning, search, backup and exports work offline.
 
@@ -116,6 +117,26 @@ MOMENTUM_COOKIE_SECURE=true
 ```
 
 OAuth on mobile has additional considerations: `SameSite=Lax` cookies may not be sent from a custom WebView origin to a cross-site API. Use a same-site custom domain or a native OAuth bridge (not implemented). This must be tested on a device.
+
+## 8. Linux and macOS desktop
+
+The shared Java service + web client run natively on both Unix platforms. `scripts/momentum.sh` mirrors the Windows launchers:
+
+```bash
+./scripts/momentum.sh start      # build if needed (javac/jar + npm build), start the service, open the browser
+./scripts/momentum.sh stop       # stop the service (incl. stray-process cleanup)
+./scripts/momentum.sh restart    # stop + start
+./scripts/momentum.sh status     # is the service up?
+./scripts/momentum.sh build      # recompile the Java service only
+./scripts/momentum.sh doctor     # full 14-point health check
+```
+
+Requirements: `bash`, `curl`, JDK 21+ (`java` + `javac` + `jar`), Node.js 22+ with npm (only to build the web client), Python-free. Logs are written to `${TMPDIR:-/tmp}/momentum/`. The `.env` loading rules are identical to the Windows scripts, and `MOMENTUM_PORT` selects the service port equally.
+
+Desktop-app feel on Unix: install the PWA from the browser (Chrome: "Install app"; Safari: Add to Home Screen on macOS is not applicable, use Chrome/Edge install).
+
+Verification status: script logic and health/status behavior were exercised against a live instance from the Windows Git-bash environment; a full launch pass on real Linux/macOS hardware (native browser opener, POSIX file permissions) remains to be performed there.
+
 
 ### Verification limitation
 

@@ -126,6 +126,15 @@ npm run build      → regenerate apps/web/dist after changing the app code
 npm run dev        → developer mode with live reload at http://127.0.0.1:5173
 ```
 
+### 🐧 Linux / 🍎 Mac
+There are no `.bat` files there — use the shell launcher instead (works on both Linux and macOS):
+```bash
+./scripts/momentum.sh start     # build if needed, start service, open browser
+./scripts/momentum.sh stop      # stop the service
+./scripts/momentum.sh doctor    # full health check
+```
+Needs: Java 21+ (full JDK), Node.js 22+ with npm, and `curl` (macOS ships with all but the JDK). You can also "Install app" from Chrome to get a native-app-style window. Full details: `docs/PLATFORMS.md`, section 8.
+
 ---
 
 ## 📱 3. Android

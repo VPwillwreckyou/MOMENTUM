@@ -32,6 +32,9 @@
 - Full boot-cycle test: `npm stop` → bat relaunch → doctor HEALTHY, app window auto-opened.
 - Fresh screenshots for README/docs (`docs/screenshots/`, all 10 regenerated post-redesign).
 
+### Linux / macOS
+- New `scripts/momentum.sh`: start/stop/restart/status/build/doctor with `.env` loading, health-wait loop, browser open (`xdg-open`/`open`), logs at `${TMPDIR:-/tmp}/momentum/`. Syntax-verified and exercised against a live instance via Git-bash. Documented in `docs/PLATFORMS.md` §8 and `TUTORIAL.md`.
+
 ### Known issues / follow-ups
 - `MOMENTUM.exe` opens its window under the repo-local `.app-profile`; other launchers use `%LOCALAPPDATA%\MOMENTUMAppProfile` — profile alignment queued for Qoder (plus single-instance behavior and `--no-sandbox` review).
 - OAuth providers configured in `.env` await user-supplied credentials; buttons activate automatically per provider once both ID and secret exist. Apple additionally requires an HTTPS domain + Apple Developer Program.
