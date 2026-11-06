@@ -8,6 +8,29 @@ MOMENTUM is a complete, working application — not a mockup. Goals, tasks, mile
 
 > 📖 **New here? Read [`TUTORIAL.md`](TUTORIAL.md) — what every file is for and how to launch the web, Windows, Android and iOS versions.**
 
+## 🚀 How to open MOMENTUM on each device
+
+| Device | What to open | What happens |
+| --- | --- | --- |
+| **Windows (app window)** | Double-click the **`MOMENTUM`** desktop shortcut, or **`Launch MOMENTUM.bat`** or **`MOMENTUM.exe`** in this folder | Starts the local service quietly, then opens the app as its own window (no browser tab) |
+| **Windows (browser tab)** | Double-click **`MOMENTUM Website.bat`** | Starts the service, opens `http://127.0.0.1:8787` in your normal browser |
+| **Web (any computer)** | Open `http://127.0.0.1:8787` in a browser whenever the service is running | Same full app as a browser tab |
+| **Linux / macOS** | In a terminal: `./scripts/momentum.sh start` | Builds if needed, starts the service, opens the browser. Use `stop`, `status` and `doctor` the same way |
+| **Android phone** | Copy `MOMENTUM-android.apk` from this folder to the phone, tap it, allow "install unknown apps", open MOMENTUM | The full app bundled natively; goals work fully offline on the phone |
+| **iPhone / iPad** | Open the site in Safari → Share → **"Add to Home Screen"** | ICON on the home screen; opens fullscreen like a native app (like Android, AI/sync need access to the service) |
+| **Browser "install" (Chrome/Edge)** | Click the install icon in the address bar | App-like window, same as the Windows app experience |
+
+### Keeping it happy (plain commands, from this folder in a terminal)
+
+```
+npm run doctor      → check everything is healthy (recommended after changes)
+npm run restart     → stop and relaunch the service
+npm stop	           → stop the background service
+```
+
+If something misbehaves: run `npm run doctor` — it names the problem and the command to fix it. Crash logs: `%TEMP%\momentum\`.
+
+
 ## What is included
 
 | Area | Status |
@@ -30,7 +53,7 @@ MOMENTUM is a complete, working application — not a mockup. Goals, tasks, mile
 | Google / Apple / GitHub / Discord OAuth | Implemented; needs provider credentials |
 | Explicit encrypted device sync | Working |
 | Attachment storage | Working (local; included in JSON backup, excluded from cloud sync) |
-| Windows desktop app | Runs locally with no internet: the `MOMENTUM` desktop shortcut starts the local Java service and opens the app window; the packaged Electron build is present but its GUI cannot start on this Windows build |
+| Windows desktop app | Runs locally with no internet: three launchers — the `MOMENTUM` desktop shortcut / `MOMENTUM.exe`, and `Launch MOMENTUM.bat` — all start the local Java service and open a standalone app window; `MOMENTUM Website.bat` opens it as a browser tab. The packaged Electron build is present but its GUI cannot start on this Windows build (see Known limitations) |
 | Android / iOS apps | Same web app bundled natively via Capacitor. Signed debug APK at `MOMENTUM-android.apk`; the iOS Xcode project is generated and synced at `apps/mobile/ios` and builds on macOS |
 
 ## Architecture at a glance
@@ -89,7 +112,7 @@ npm start
 
 Everything runs from this computer: the Java service, web bundle, fonts and icons are local, so MOMENTUM launches and works with **no internet connection**. Only AI replies (Groq) and optional OAuth sign-in require one. The production build also registers a service worker, so an already-opened PWA tab reloads even if the local service is stopped.
 
-For a one-click browser launch on Windows, double-click `MOMENTUM Website.bat`; for a standalone window, use `Launch MOMENTUM.bat` or the `MOMENTUM` desktop shortcut.
+For a one-click browser launch on Windows, double-click `MOMENTUM Website.bat`; for a standalone window, use `Launch MOMENTUM.bat`, the `MOMENTUM` desktop shortcut or `MOMENTUM.exe`. On Linux/macOS, run `./scripts/momentum.sh start`.
 
 For a clean rebuild:
 
