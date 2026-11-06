@@ -363,6 +363,46 @@ export function SettingsPage() {
                   Apply
                 </Button>
               </div>
+              <div className="custom-accent custom-accent--gradient">
+                <label className="accent-color-picker">
+                  <span
+                    className="accent-color-picker__swatch"
+                    style={{ background: settings.accent }}
+                    aria-hidden="true"
+                  />
+                  <input
+                    type="color"
+                    value={/^#[0-9a-fA-F]{6}$/.test(settings.accent) ? settings.accent : '#3b82f6'}
+                    onChange={(event) => {
+                      setAccentError(null);
+                      setCustomAccent(event.target.value);
+                      updateSettings({ accent: event.target.value });
+                    }}
+                    aria-label="Pick the primary color"
+                  />
+                  <span className="accent-color-picker__label">Primary color</span>
+                </label>
+                <label className="accent-color-picker">
+                  <span
+                    className="accent-color-picker__swatch"
+                    style={{ background: settings.accentSecondary }}
+                    aria-hidden="true"
+                  />
+                  <input
+                    type="color"
+                    value={/^#[0-9a-fA-F]{6}$/.test(settings.accentSecondary ?? '') ? settings.accentSecondary : '#8b5cf6'}
+                    onChange={(event) => updateSettings({ accentSecondary: event.target.value })}
+                    aria-label="Pick the secondary color"
+                  />
+                  <span className="accent-color-picker__label">Secondary color</span>
+                </label>
+                <div
+                  className="accent-gradient-preview"
+                  style={{ background: `linear-gradient(135deg, ${settings.accent}, ${settings.accentSecondary})` }}
+                  role="img"
+                  aria-label="Preview of your primary and secondary colors blended together"
+                />
+              </div>
             </div>
 
             <div className="settings-row-group">

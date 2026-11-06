@@ -137,6 +137,7 @@ export interface AppSettings {
   schemaVersion: 1;
   themeMode: ThemeMode;
   accent: string;
+  accentSecondary: string;
   density: Density;
   reduceMotion: boolean;
   weekStartsOn: 0 | 1;

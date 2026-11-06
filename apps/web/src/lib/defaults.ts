@@ -38,6 +38,7 @@ export function defaultSettings(): AppSettings {
     schemaVersion: 1,
     themeMode: 'dark',
     accent: '#3b82f6',
+    accentSecondary: '#8b5cf6',
     density: 'comfortable',
     reduceMotion: false,
     weekStartsOn: 1,

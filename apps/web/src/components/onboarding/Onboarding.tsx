@@ -206,6 +206,53 @@ export function Onboarding() {
                 </div>
               </div>
 
+              <div className="onboarding-choice-block">
+                <span className="field__label">Custom colors — pick exactly what you want</span>
+                <div className="onboarding-gradient-picker">
+                  <label className="gradient-picker-slot">
+                    <span
+                      className="gradient-picker-swatch"
+                      style={{ background: settings.accent }}
+                      aria-hidden="true"
+                    />
+                    <input
+                      type="color"
+                      value={/^#[0-9a-fA-F]{6}$/.test(settings.accent) ? settings.accent : '#3b82f6'}
+                      onChange={(event) => updateSettings({ accent: event.target.value })}
+                      aria-label="Pick the primary color"
+                    />
+                    <span className="gradient-picker-meta">
+                      <strong>Primary color</strong>
+                      <code>{settings.accent}</code>
+                    </span>
+                  </label>
+                  <label className="gradient-picker-slot">
+                    <span
+                      className="gradient-picker-swatch"
+                      style={{ background: settings.accentSecondary }}
+                      aria-hidden="true"
+                    />
+                    <input
+                      type="color"
+                      value={/^#[0-9a-fA-F]{6}$/.test(settings.accentSecondary ?? '') ? settings.accentSecondary : '#8b5cf6'}
+                      onChange={(event) => updateSettings({ accentSecondary: event.target.value })}
+                      aria-label="Pick the secondary color"
+                    />
+                    <span className="gradient-picker-meta">
+                      <strong>Secondary color</strong>
+                      <code>{settings.accentSecondary}</code>
+                    </span>
+                  </label>
+                  <div
+                    className="gradient-picker-preview"
+                    style={{ background: `linear-gradient(135deg, ${settings.accent}, ${settings.accentSecondary})` }}
+                    role="img"
+                    aria-label="Preview of your primary and secondary colors blended together"
+                  />
+                </div>
+                <p className="onboarding-choice-hint">Both colors flow together through the whole app — buttons, rings, charts and highlights. Change them any time in Settings.</p>
+              </div>
+
               <div className="onboarding-actions">
                 <Button variant="ghost" icon={<ArrowLeft size={15} />} onClick={() => setStep(0)}>Back</Button>
                 <Button variant="primary" size="lg" trailingIcon={<ArrowRight size={16} />} onClick={next}>Continue</Button>
@@ -356,7 +403,7 @@ export function Onboarding() {
               <div className="onboarding-recap">
                 <span className="eyebrow">Your workspace</span>
                 <div><span>Theme</span><strong>{settings.themeMode === 'light' ? 'Light' : 'Dark'}</strong></div>
-                <div><span>Accent</span><span className="recap-accent" style={{ background: settings.accent }} /></div>
+                <div><span>Colors</span><span className="recap-accent" style={{ background: `linear-gradient(135deg, ${settings.accent}, ${settings.accentSecondary})` }} /></div>
                 <div><span>Provider</span><strong>{PROVIDER_DEFAULTS[provider].label}</strong></div>
                 <div><span>Storage</span><strong>This device</strong></div>
               </div>

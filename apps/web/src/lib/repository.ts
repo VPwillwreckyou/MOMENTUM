@@ -148,6 +148,9 @@ export function normalizeSettings(raw: unknown): AppSettings {
       ? (raw.themeMode as AppSettings['themeMode'])
       : 'dark',
     accent: /^#[0-9a-fA-F]{6}$/.test(String(raw.accent)) ? String(raw.accent) : base.accent,
+    accentSecondary: /^#[0-9a-fA-F]{6}$/.test(String(raw.accentSecondary))
+      ? String(raw.accentSecondary)
+      : base.accentSecondary,
     density: raw.density === 'compact' ? 'compact' : 'comfortable',
     reduceMotion: Boolean(raw.reduceMotion),
     weekStartsOn: raw.weekStartsOn === 0 ? 0 : 1,

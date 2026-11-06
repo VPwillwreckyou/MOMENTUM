@@ -4,6 +4,11 @@
   --accent: #3b82f6;
   --accent-rgb: 59 130 246;
   --accent-contrast: #ffffff;
+  /* Secondary accent (user-selectable); --accent-linear is the composite brand gradient */
+  --accent-2: #7c3aed;
+  --accent-2-rgb: 124 58 237;
+  --accent-2-contrast: #ffffff;
+  --accent-linear: linear-gradient(135deg, var(--accent), var(--accent-2));
   --success: #34d399;
   --warning: #fbbf24;
   --danger: #fb7185;

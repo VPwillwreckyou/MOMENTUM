@@ -57,6 +57,24 @@ export function AuthPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [oauthHint, setOauthHint] = useState<string | null>(null);
+
+  const handleOAuthClick = (providerId: string, label: string, configured: boolean) => {
+    if (configured) {
+      setOauthHint(null);
+      return;
+    }
+    const envKeys: Record<string, [string, string]> = {
+      google: ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'],
+      github: ['GITHUB_CLIENT_ID', 'GITHUB_CLIENT_SECRET'],
+      discord: ['DISCORD_CLIENT_ID', 'DISCORD_CLIENT_SECRET'],
+      apple: ['APPLE_CLIENT_ID', 'APPLE_CLIENT_SECRET'],
+    };
+    const [idKey, secretKey] = envKeys[providerId] ?? [`${providerId.toUpperCase()}_CLIENT_ID`, `${providerId.toUpperCase()}_CLIENT_SECRET`];
+    setOauthHint(
+      `${label} sign-in is wired up and ready on the server — it just needs the ${label} app credentials in the server's .env file: set ${idKey} and ${secretKey}, then restart the service. See TUTORIAL.md → "Google / GitHub / Discord / Apple sign-in (OAuth)".`,
+    );
+  };
 
   useEffect(() => {
     const status = params.get('auth');
@@ -305,6 +323,14 @@ export function AuthPage() {
                 <span>{serverError}</span>
               </div>
             ) : null}
+            {oauthHint ? (
+              <div className="form-info-banner" role="status">
+                <span>{oauthHint}</span>
+                <button type="button" className="form-info-banner__close" onClick={() => setOauthHint(null)} aria-label="Dismiss">
+                  ×
+                </button>
+              </div>
+            ) : null}
 
             <div className="oauth-grid">
               {providers.map((provider) => (
@@ -315,7 +341,12 @@ export function AuthPage() {
                   aria-disabled={!provider.configured}
                   title={provider.configured ? `Continue with ${provider.label}` : `${provider.label} is not configured on this server`}
                   onClick={(event) => {
-                    if (!provider.configured) event.preventDefault();
+                    if (!provider.configured) {
+                      event.preventDefault();
+                      handleOAuthClick(provider.id, provider.label, provider.configured);
+                      return;
+                    }
+                    handleOAuthClick(provider.id, provider.label, true);
                   }}
                 >
                   {OAUTH_ICONS[provider.id] ?? <UserRound size={16} />}

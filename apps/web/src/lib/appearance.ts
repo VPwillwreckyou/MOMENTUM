@@ -32,6 +32,12 @@ export function applyAppearance(settings: AppSettings): void {
   const [r, g, b] = hexToRgb(settings.accent);
   root.style.setProperty('--accent-rgb', `${r} ${g} ${b}`);
   root.style.setProperty('--accent-contrast', luminance(settings.accent) > 0.55 ? '#071018' : '#ffffff');
+  const secondary = /^#[0-9a-fA-F]{6}$/.test(settings.accentSecondary ?? '') ? settings.accentSecondary : '#7c3aed';
+  root.style.setProperty('--accent-2', secondary);
+  const [r2, g2, b2] = hexToRgb(secondary);
+  root.style.setProperty('--accent-2-rgb', `${r2} ${g2} ${b2}`);
+  root.style.setProperty('--accent-2-contrast', luminance(secondary) > 0.55 ? '#071018' : '#ffffff');
+  root.style.setProperty('--accent-linear', `linear-gradient(135deg, ${settings.accent}, ${secondary})`);
   const meta = document.querySelector('meta[name="theme-color"]');
   meta?.setAttribute('content', theme === 'dark' ? '#070a10' : '#f4f6fa');
 }

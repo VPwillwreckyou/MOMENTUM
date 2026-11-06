@@ -25,6 +25,12 @@ export function ProgressRing({
       aria-label={label ?? `${clamped}% complete`}
     >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+        <defs>
+          <linearGradient id="momentum-ring-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style={{ stopColor: 'var(--accent)' }} />
+            <stop offset="100%" style={{ stopColor: 'var(--accent-2)' }} />
+          </linearGradient>
+        </defs>
         <circle
           className="progress-ring__track"
           cx={size / 2}
@@ -43,6 +49,7 @@ export function ProgressRing({
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
+          stroke="url(#momentum-ring-gradient)"
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </svg>
