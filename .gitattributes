@@ -1,0 +1,30 @@
+# Normalize line endings across platforms
+* text=auto
+
+# Windows scripts keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# The gradle shell wrapper requires LF
+gradlew text eol=lf
+
+# Binaries
+*.jar binary
+*.apk binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.pdf binary
+
+# Sources
+*.svg text
+*.java text
+*.ts text
+*.tsx text
+*.css text

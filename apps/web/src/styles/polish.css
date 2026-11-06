@@ -1,0 +1,345 @@
+/* ============================================================================
+   polish.css — final visual layer
+   Refined depth, gradient accents, micro-interactions and focus polish.
+   Patterns distilled from the best-in-class tracking apps: hero metrics with
+   rings (Apple Fitness / Streaks), consistency detail (Strides), snug surfaces
+   with soft ambient shadows (Things 3 / Linear), and living feedback
+   (Duolingo / Habitica). Loaded last so it wins ties without specificity wars.
+   ========================================================================== */
+
+/* ------------------------- Ambient app atmosphere ------------------------- */
+
+html {
+  /* A barely-there accent aura behind the whole workspace. */
+  background:
+    radial-gradient(1100px 520px at 12% -10%, rgb(var(--accent-rgb) / 0.075), transparent 62%),
+    radial-gradient(900px 480px at 95% -18%, rgb(var(--accent-rgb) / 0.05), transparent 58%),
+    no-repeat;
+  background-attachment: fixed;
+}
+
+:root[data-theme='light'] html {
+  background:
+    radial-gradient(1100px 520px at 12% -10%, rgb(var(--accent-rgb) / 0.055), transparent 62%),
+    radial-gradient(900px 480px at 95% -18%, rgb(var(--accent-rgb) / 0.04), transparent 58%),
+    no-repeat;
+}
+
+::selection {
+  background: rgb(var(--accent-rgb) / 0.28);
+}
+
+/* Slim, quiet scrollbars. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--text-faint);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+  background-clip: padding-box;
+}
+
+/* Accessible focus state everywhere. */
+:focus-visible {
+  outline: 2px solid rgb(var(--accent-rgb) / 0.75);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* -------------------------------- Panels --------------------------------- */
+
+.panel,
+.rail-panel,
+.command-hero,
+.dashboard-empty,
+.auth-panel,
+.onboarding-shell {
+  /* Hairline top-light like frosted glass in Things 3 / Linear. */
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.045),
+    var(--shadow-sm) !important;
+}
+
+:root[data-theme='light'] .panel,
+:root[data-theme='light'] .rail-panel,
+:root[data-theme='light'] .command-hero,
+:root[data-theme='light'] .dashboard-empty,
+:root[data-theme='light'] .auth-panel,
+:root[data-theme='light'] .onboarding-shell {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.85),
+    var(--shadow-sm) !important;
+}
+
+.panel { border-radius: var(--radius-lg) !important; }
+
+/* ----------------------------- Goal cards -------------------------------- */
+
+.goal-card {
+  position: relative;
+  transition:
+    transform 0.32s var(--ease-out),
+    border-color 0.32s var(--ease-out),
+    box-shadow 0.32s var(--ease-out);
+}
+
+/* Subtle category-colored spine for instant scanning (Strides-style coding). */
+.goal-card::before {
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 999px 999px 0;
+  background: linear-gradient(180deg, var(--category-color), transparent 130%);
+  content: '';
+  opacity: 0.85;
+}
+
+.goal-card:hover {
+  border-color: rgb(var(--accent-rgb) / 0.34);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.05),
+    0 14px 34px rgb(var(--accent-rgb) / 0.14),
+    var(--shadow-sm);
+  transform: translateY(-3px);
+}
+
+:root[data-theme='light'] .goal-card:hover {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 14px 34px rgb(20 34 54 / 0.12);
+}
+
+.goal-card__open {
+  transition: opacity 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+  opacity: 0.3;
+}
+
+.goal-card:hover .goal-card__open {
+  opacity: 1;
+  transform: translate(2px, -2px);
+}
+
+.goal-card--compact:hover {
+  transform: none;
+}
+
+/* ------------------------------ Buttons ---------------------------------- */
+
+.btn {
+  transition:
+    transform 0.16s var(--ease-snap),
+    box-shadow 0.24s var(--ease-out),
+    border-color 0.24s var(--ease-out),
+    background-color 0.24s var(--ease-out);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.977);
+}
+
+.btn--primary {
+  /* A calm gradient, close in spirit to Duolingo/Linear primaries. */
+  background-image: linear-gradient(135deg, rgb(var(--accent-rgb) / 1) 20%, rgb(var(--accent-rgb) / 0.72) 115%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    0 6px 18px rgb(var(--accent-rgb) / 0.28);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background-image: linear-gradient(135deg, rgb(var(--accent-rgb) / 1) 10%, rgb(var(--accent-rgb) / 0.82));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.22),
+    0 10px 26px rgb(var(--accent-rgb) / 0.36);
+  transform: translateY(-1px);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  border-color: rgb(var(--accent-rgb) / 0.38);
+}
+
+/* ------------------------- Dashboard hero metric ------------------------- */
+
+.command-hero__main::after {
+  opacity: 0.2; /* the inner frame fights the aura; quiet it down */
+}
+
+.signal-score__number {
+  background: linear-gradient(120deg, var(--text) 30%, rgb(var(--accent-rgb) / 0.95) 115%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Halo behind the hero ring — a steady, soft fitness-ring glow. */
+.command-hero__ring::before {
+  animation: hero-halo 7s ease-in-out infinite;
+  background: radial-gradient(closest-side, rgb(var(--accent-rgb) / 0.2), transparent 74%);
+}
+
+@keyframes hero-halo {
+  0%,
+  100% {
+    opacity: 0.65;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.signal-label__dot {
+  animation: signal-pulse 3.2s ease-in-out infinite;
+}
+
+@keyframes signal-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgb(var(--accent-rgb) / 0.13);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgb(var(--accent-rgb) / 0.08);
+  }
+}
+
+.signal-stats strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.is-warning {
+  animation: warn-nudge 0.4s var(--ease-snap) 1;
+}
+
+@keyframes warn-nudge {
+  from {
+    transform: translateY(3px);
+    opacity: 0.2;
+  }
+}
+
+/* ------------------------- Momentum 14-day chart ------------------------- */
+
+.momentum-bar {
+  transition: opacity 0.2s var(--ease-out);
+}
+
+.momentum-bar:hover {
+  opacity: 1;
+}
+
+.momentum-bar__fill {
+  transition: height 0.65s var(--ease-out);
+}
+
+.momentum-bar__track {
+  background: linear-gradient(180deg, var(--chart-grid), var(--grid-line)) !important;
+}
+
+.momentum-bar__fill--active {
+  background:
+    linear-gradient(180deg, rgb(var(--accent-rgb) / 1), rgb(var(--accent-rgb) / 0.55)) !important;
+  box-shadow: 0 0 14px rgb(var(--accent-rgb) / 0.45);
+}
+
+.momentum-bar:hover .momentum-bar__fill--active {
+  background:
+    linear-gradient(180deg, rgb(var(--accent-rgb) / 1) 0%, rgb(var(--accent-rgb) / 0.86) 60%, rgb(var(--accent-rgb) / 0.4)) !important;
+}
+
+/* ------------------------------- Rings ---------------------------------- */
+
+.progress-ring__track {
+  opacity: 0.85;
+}
+
+.command-hero__ring .progress-ring__value {
+  filter: drop-shadow(0 0 7px rgb(var(--accent-rgb) / 0.55));
+}
+
+/* Ring fills breathe in as they change. */
+.progress-ring__value {
+  transition: stroke-dashoffset 0.7s var(--ease-out);
+}
+
+/* ------------------------------- Rails ---------------------------------- */
+
+.next-move,
+.deadline-row,
+.activity-mini__item {
+  transition: background-color 0.2s var(--ease-out), transform 0.2s var(--ease-out);
+}
+
+.next-move:hover,
+.deadline-row:hover {
+  transform: translateX(2px);
+}
+
+.rail-count {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------ Empty states ---------------------------- */
+
+.dashboard-empty__core {
+  animation: empty-core 6s ease-in-out infinite;
+}
+
+@keyframes empty-core {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(var(--accent-rgb) / 0.04);
+  }
+  50% {
+    box-shadow: 0 0 0 14px rgb(var(--accent-rgb) / 0.015);
+  }
+}
+
+/* ------------------------------ Toasts ---------------------------------- */
+
+.toast,
+[class*='toast'] {
+  /* Slightly softer float for global toasts if styled generically. */
+  will-change: transform, opacity;
+}
+
+/* ------------------------------ Reduced motion --------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .command-hero__ring::before,
+  .signal-label__dot,
+  .dashboard-empty__core,
+  .is-warning {
+    animation: none !important;
+  }
+
+  .goal-card,
+  .btn,
+  .momentum-bar__fill,
+  .progress-ring__value,
+  .next-move,
+  .deadline-row,
+  .goal-card__open {
+    transition: none !important;
+  }
+
+  .goal-card:hover,
+  .next-move:hover,
+  .deadline-row:hover,
+  .btn:hover:not(:disabled) {
+    transform: none !important;
+  }
+}

@@ -1,0 +1,43 @@
+# MOMENTUM Changelog
+
+## 2026-11-06 — Launch & offline release (parallel agents: Claude/Qoder)
+
+### Windows launchers — all working
+- `Launch MOMENTUM.bat` → starts the local Java service (hidden, with crash logs at `%TEMP%\momentum\`) and opens the app as a standalone Edge window (`--app` mode, dedicated profile).
+- `MOMENTUM Website.bat` → same service, opens the site in your default browser.
+- `MOMENTUM.exe` (compiled native launcher, built by Qoder) → finds Java, cold-starts the service, opens the app window; graceful failure reporting built in.
+- Desktop + folder `MOMENTUM.lnk` shortcuts point at the verified path and carry the app icon.
+- Electron `.exe` path remains broken on Windows 26H2 build 26300 (Electron 45 startup crash) — known environment limitation; Edge app-mode window is the delivered substitute. (`npm run desktop` retriable when a fixed Electron ships.)
+
+### New tooling
+- `npm run doctor` — 14-point health check (Java, service, web build + service worker, jar, Groq AI round-trip, config, launchers, APK↔web build hash sync) with clean exit codes.
+- `npm stop` — stops the hidden service, including zombie jar processes.
+- `npm run restart` — stop + relaunch.
+- `npm run launch` — launcher with `-Browser` (website mode) support.
+
+### Android
+- `MOMENTUM-android.apk` built from the packaged Capacitor shell, hash-verified to embed the current web build (`npm --prefix apps/mobile run copy` + `gradlew assembleDebug`).
+- Works fully offline for goals/tasks/notes/search/PDF/backup; AI and sync need the PC service.
+- `docs/` and `TUTORIAL.md` document one-time setup and the install flow.
+
+### Internet-free
+- Site and Windows app launch and run with zero internet (verified: service worker offline shell, offline goal creation + persistence, manifest 200).
+- Only AI replies (Groq), OAuth sign-in providers and device sync require a connection.
+
+### Design polish
+- New final stylesheet layer `apps/web/src/styles/polish.css`: ambient accent aura, frosted-surface highlights, gradient momentum score, animated progress ring + halo, glowing 14-day bars with grow-in animation, category-colored card spines, hover-lift cards, button press/hover micro-interactions, `prefers-reduced-motion` respected, global focus rings, styled scrollbars.
+
+### Verification performed
+- Unit tests: 26/26 web, 8/8 API. e2e: full flow, Groq AI planner, advanced features, offline, 2-device sync, backup/restore, desktop-backend — all green, zero console errors. (`e2e-desktop` Electron-launch test remains environment-failed, documented above.)
+- Full boot-cycle test: `npm stop` → bat relaunch → doctor HEALTHY, app window auto-opened.
+- Fresh screenshots for README/docs (`docs/screenshots/`, all 10 regenerated post-redesign).
+
+### Known issues / follow-ups
+- `MOMENTUM.exe` opens its window under the repo-local `.app-profile`; other launchers use `%LOCALAPPDATA%\MOMENTUMAppProfile` — profile alignment queued for Qoder (plus single-instance behavior and `--no-sandbox` review).
+- OAuth providers configured in `.env` await user-supplied credentials; buttons activate automatically per provider once both ID and secret exist. Apple additionally requires an HTTPS domain + Apple Developer Program.
+- Two transient `401` console entries in `e2e-groq` are expected pre-login probes, not bugs.
+
+---
+
+## Historical
+See `docs/DEVELOPMENT_LOG.md` for the original delivery phases.

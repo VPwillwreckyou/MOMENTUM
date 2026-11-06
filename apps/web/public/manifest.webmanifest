@@ -1,0 +1,60 @@
+{
+  "name": "MOMENTUM — Goal command center",
+  "short_name": "MOMENTUM",
+  "description": "Turn ambition into structured, actionable momentum. Local-first goal planning and progress tracking.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#070a10",
+  "theme_color": "#070a10",
+  "categories": ["productivity", "lifestyle", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New goal",
+      "short_name": "New goal",
+      "url": "/goals?new=1",
+      "description": "Create a new goal"
+    },
+    {
+      "name": "Goal Architect",
+      "short_name": "AI plan",
+      "url": "/planner",
+      "description": "Build a plan with AI assistance"
+    },
+    {
+      "name": "Overview",
+      "short_name": "Overview",
+      "url": "/",
+      "description": "Open the command center"
+    }
+  ]
+}

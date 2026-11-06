@@ -1,0 +1,46 @@
+node_modules/
+.npm-cache/
+dist/
+build/
+out/
+data/
+*.log
+.env
+.env.*
+!.env.example
+!apps/web/.env.production
+apps/desktop/runtime.env
+apps/desktop/build/runtime.env
+.DS_Store
+Thumbs.db
+coverage/
+playwright-report/
+test-results/
+apps/desktop/release/
+apps/desktop/web/dist/
+apps/mobile/android/app/build/
+apps/mobile/android/build/
+apps/mobile/android/.gradle/
+apps/mobile/android/app/src/main/assets/public/
+apps/mobile/ios/App/App/public/
+apps/mobile/ios/App/DerivedData/
+*.class
+services/api/build/
+.browser-profile*/
+.e2e-data/
+.desktop-test-data/
+.tmp/
+screenshots/
+apps/mobile/ios/App/Pods/
+apps/mobile/ios/App/App.xcworkspace/xcuserdata/
+apps/mobile/ios/App/App.xcodeproj/xcuserdata/
+# Compiled deliverables and machine-local artifacts (publish the APK as a GitHub Release asset instead)
+MOMENTUM-android.apk
+*.lnk
+# Compiled launcher (build it yourself: apps/launcher/build.ps1 — source lives in apps/launcher/)
+MOMENTUM.exe
+# Browser profile created by MOMENTUM.exe inside the repo — personal session data, never commit
+.app-profile/
+# Local Gradle/Java runtime leftovers
+services/api/build/tmp/
+

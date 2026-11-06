@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MOMENTUM</string>
+    <string name="title_activity_main">MOMENTUM</string>
+    <string name="package_name">com.momentum.app</string>
+    <string name="custom_url_scheme">com.momentum.app</string>
+</resources>

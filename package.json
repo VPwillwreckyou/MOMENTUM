@@ -1,0 +1,38 @@
+{
+  "name": "momentum",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MOMENTUM - an offline-first personal goal command center.",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @momentum/web",
+    "build": "npm run build -w @momentum/web",
+    "preview": "npm run preview -w @momentum/web",
+    "test": "npm run test -w @momentum/web && npm run test:api",
+    "test:web": "npm run test -w @momentum/web",
+    "test:api": "powershell -NoProfile -ExecutionPolicy Bypass -File services/api/scripts/test.ps1",
+    "api": "powershell -NoProfile -ExecutionPolicy Bypass -File services/api/scripts/run.ps1",
+    "api:build": "powershell -NoProfile -ExecutionPolicy Bypass -File services/api/scripts/build.ps1",
+    "start": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start.ps1",
+    "start:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start.ps1 -Rebuild",
+    "desktop": "npm --prefix apps/desktop start",
+    "desktop:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-windows.ps1",
+    "desktop:run": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-windows.ps1",
+    "launch": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/launch-app.ps1",
+    "stop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/stop-service.ps1",
+    "restart": "npm run stop && npm run launch",
+    "doctor": "node scripts/doctor.mjs",
+    "mobile:sync": "npm --prefix apps/mobile run sync",
+    "test:ui": "node scripts/e2e-full.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "electron": "^45.0.0-beta.7",
+    "playwright-core": "^1.64.1"
+  }
+}

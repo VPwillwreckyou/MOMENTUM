@@ -1,0 +1,578 @@
+/* Readability pass: micro-labels should guide, never require squinting. */
+:root {
+  --accent-text: var(--accent);
+}
+
+:root[data-theme='light'] {
+  --accent-text: color-mix(in srgb, var(--accent) 68%, #06111c);
+}
+
+.text-link,
+.text-accent,
+.badge--accent,
+.meta-chip--accent,
+.status-text,
+.category-card__link:hover,
+.notes-panel .text-link {
+  color: var(--accent-text);
+}
+
+.account-header .text-link {
+  display: flex;
+  width: max-content;
+  margin-bottom: 22px;
+}
+
+[data-theme='light'] .nav-item--active svg,
+[data-theme='light'] .detail-tab--active svg,
+[data-theme='light'] .settings-nav__item--active svg:first-child {
+  color: var(--accent-text);
+}
+
+.eyebrow {
+  font-size: 10.5px;
+}
+
+.badge,
+.meta-chip {
+  font-size: 10.5px;
+}
+
+.priority,
+.category-badge,
+.category-label {
+  font-size: 10.5px;
+}
+
+.sidebar__tagline,
+.sidebar__section-label {
+  font-size: 9.5px;
+}
+
+.sidebar__counts {
+  font-size: 10px;
+}
+
+.nav-item {
+  font-size: 13px;
+}
+
+.sidebar__legal {
+  font-size: 9px;
+}
+
+.copilot-card__copy strong {
+  font-size: 11px;
+}
+
+.copilot-card__copy span {
+  font-size: 10px;
+}
+
+.account-chip__copy strong {
+  font-size: 11px;
+}
+
+.account-chip__copy span {
+  font-size: 9.5px;
+}
+
+.topbar__context {
+  font-size: 11px;
+}
+
+.search-trigger {
+  font-size: 11.5px;
+}
+
+.goal-card__description {
+  font-size: 11.5px;
+}
+
+.goal-card__meta .meta-chip,
+.goal-card__meta .priority {
+  font-size: 10px;
+}
+
+.goal-card__deadline {
+  font-size: 10.5px;
+}
+
+.goal-card__next-label {
+  font-size: 9px;
+}
+
+.goal-card__next-title {
+  font-size: 10.5px;
+}
+
+.goal-card__done {
+  font-size: 10px;
+}
+
+.signal-caption {
+  font-size: 12.5px;
+}
+
+.signal-stats span {
+  font-size: 9.5px;
+}
+
+.focus-panel__footer,
+.momentum-chart__summary span,
+.chart-legend,
+.momentum-chart__footer,
+.hero-orbit-label,
+.momentum-bar > span {
+  font-size: 9.5px;
+}
+
+.rail-panel__header h2 {
+  font-size: 16px;
+}
+
+.next-move__title {
+  font-size: 11.5px;
+}
+
+.next-move__meta,
+.deadline-row__meta,
+.activity-mini__item span {
+  font-size: 9.5px;
+}
+
+.next-move__flag {
+  font-size: 8.5px;
+}
+
+.deadline-row__title,
+.activity-mini__item p,
+.rail-empty {
+  font-size: 10.5px;
+}
+
+.rail-panel__link,
+.deadline-row__date span {
+  font-size: 10px;
+}
+
+.dashboard-empty__principles strong {
+  font-size: 12.5px;
+}
+
+.dashboard-empty__principles p {
+  font-size: 11px;
+}
+
+.goals-stat-strip .eyebrow,
+.status-tab,
+.filter-toggle {
+  font-size: 11px;
+}
+
+.goal-grid .goal-card__title {
+  font-size: 17px;
+}
+
+.category-card__metrics,
+.category-card__link {
+  font-size: 10px;
+}
+
+.uncategorized-strip p,
+.archive-row__meta,
+.trash-row__meta,
+.trash-row__retention {
+  font-size: 10px;
+}
+
+.archive-row p,
+.trash-row h2 {
+  font-size: 11.5px;
+}
+
+.archive-row__progress {
+  font-size: 9.5px;
+}
+
+.retention-banner strong,
+.detail-banner strong {
+  font-size: 12px;
+}
+
+.retention-banner p,
+.detail-banner p {
+  font-size: 10.5px;
+}
+
+/* Goal detail */
+.detail-meta-row {
+  font-size: 10.5px;
+}
+
+.detail-description {
+  font-size: 13.5px;
+}
+
+.milestone__header h3 {
+  font-size: 15.5px;
+}
+
+.milestone__meta {
+  font-size: 9.5px;
+}
+
+.milestone__description,
+.task-item__title {
+  font-size: 11.5px;
+}
+
+.task-item__due {
+  font-size: 9.5px;
+}
+
+.task-item__detail {
+  font-size: 10.5px;
+}
+
+.subtask__title {
+  font-size: 10.5px;
+}
+
+.task-empty,
+.completed-toggle {
+  font-size: 10px;
+}
+
+.notes-panel__footer,
+.save-state,
+.notes-panel__header .eyebrow {
+  font-size: 9.5px;
+}
+
+.notes-editor {
+  font-size: 13.5px;
+}
+
+.activity-event p {
+  font-size: 12px;
+}
+
+.activity-event span {
+  font-size: 9.5px;
+}
+
+.detail-list dt {
+  font-size: 10px;
+}
+
+.detail-list dd {
+  font-size: 10.5px;
+}
+
+.side-panel__empty {
+  font-size: 10.5px;
+}
+
+.signal-card__metrics span {
+  font-size: 9px;
+}
+
+.signal-next-button {
+  font-size: 10.5px;
+}
+
+.attachment-row__copy span:first-child {
+  font-size: 10.5px;
+}
+
+.attachment-row__copy span:last-child,
+.attachment-drop strong,
+.attachment-drop span {
+  font-size: 9px;
+}
+
+.finance-summary span {
+  font-size: 10px;
+}
+
+.series-row {
+  font-size: 10px;
+}
+
+/* Planner */
+.architect-question > p {
+  font-size: 13px;
+}
+
+.architect-suggestions {
+  font-size: 9.5px;
+}
+
+.suggestion-chip {
+  font-size: 9px;
+}
+
+.architect-actions__hint,
+.generate-row__note,
+.planner-note,
+.planner-skip {
+  font-size: 9.5px;
+}
+
+.architect-process strong {
+  font-size: 11.5px;
+}
+
+.architect-process p,
+.architect-privacy p,
+.architect-manual p {
+  font-size: 10.5px;
+}
+
+.architect-provider span {
+  font-size: 9px;
+}
+
+.architect-provider strong {
+  font-size: 10.5px;
+}
+
+.brief-row > span {
+  font-size: 9.5px;
+}
+
+.brief-row p {
+  font-size: 11.5px;
+}
+
+.architect-loading strong {
+  font-size: 12px;
+}
+
+.architect-loading p {
+  font-size: 10px;
+}
+
+.plan-preview__banner strong {
+  font-size: 12px;
+}
+
+.plan-preview__banner p,
+.plan-edit-section__meta,
+.plan-task-list__empty {
+  font-size: 10px;
+}
+
+.plan-task-editor__title {
+  font-size: 11.5px;
+}
+
+.plan-task-editor__date,
+.plan-task-editor__priority {
+  font-size: 9.5px;
+}
+
+.add-plan-task {
+  font-size: 9.5px;
+}
+
+.plan-summary-stats span {
+  font-size: 8.5px;
+}
+
+.plan-summary-card__note {
+  font-size: 9.5px;
+}
+
+.plan-tips li,
+.plan-tips p {
+  font-size: 10px;
+}
+
+/* Settings */
+.settings-nav__item {
+  height: 38px;
+  font-size: 11.5px;
+}
+
+.settings-nav__status strong {
+  font-size: 9.5px;
+}
+
+.settings-nav__status span {
+  font-size: 8.5px;
+}
+
+.settings-copy {
+  font-size: 12.5px;
+}
+
+.theme-option__label {
+  font-size: 10.5px;
+}
+
+.settings-row strong {
+  font-size: 12.5px;
+}
+
+.settings-row p {
+  font-size: 11px;
+}
+
+.provider-option strong {
+  font-size: 10.5px;
+}
+
+.provider-option small {
+  font-size: 8.5px;
+}
+
+.settings-callout strong {
+  font-size: 11.5px;
+}
+
+.settings-callout p {
+  font-size: 10px;
+}
+
+.privacy-card strong {
+  font-size: 11.5px;
+}
+
+.privacy-card p {
+  font-size: 10px;
+}
+
+.settings-fineprint {
+  font-size: 9.5px;
+}
+
+.provider-test-result strong {
+  font-size: 10.5px;
+}
+
+.provider-test-result p {
+  font-size: 10px;
+}
+
+.account-summary strong {
+  font-size: 11.5px;
+}
+
+.account-summary span {
+  font-size: 10px;
+}
+
+.storage-panel__header strong {
+  font-size: 11.5px;
+}
+
+.storage-panel__header p {
+  font-size: 10px;
+}
+
+.data-action strong {
+  font-size: 11.5px;
+}
+
+.data-action p {
+  font-size: 10px;
+}
+
+.about-grid p {
+  font-size: 11.5px;
+}
+
+.about-links a,
+.about-links button,
+.shortcut-table > div {
+  font-size: 10.5px;
+}
+
+.settings-status {
+  font-size: 9.5px;
+}
+
+.sync-security-strip span,
+.sync-meta {
+  font-size: 9px;
+}
+
+/* Auth */
+.auth-showcase__back,
+.auth-form__header p,
+.auth-local-note,
+.auth-legal {
+  font-size: 10.5px;
+}
+
+.auth-showcase__points > div {
+  font-size: 11.5px;
+}
+
+.oauth-button {
+  font-size: 11px;
+}
+
+.auth-divider {
+  font-size: 9px;
+}
+
+.auth-mode-switch button {
+  font-size: 10.5px;
+}
+
+.account-header > p {
+  font-size: 12.5px;
+}
+
+.account-card > p {
+  font-size: 11px;
+}
+
+.account-identity p {
+  font-size: 10.5px;
+}
+
+.quote-mark {
+  font-size: 30px;
+}
+
+/* Onboarding */
+.onboarding__rail-copy p,
+.onboarding-slide__lead {
+  font-size: 12px;
+}
+
+.onboarding-promises span {
+  font-size: 9.5px;
+}
+
+.onboarding-promises strong {
+  font-size: 11px;
+}
+
+.method-row p,
+.onboarding-note,
+.onboarding-provider-note {
+  font-size: 10px;
+}
+
+.onboarding-provider strong {
+  font-size: 10.5px;
+}
+
+.onboarding-provider small {
+  font-size: 8.5px;
+}
+
+.onboarding-recap > div,
+.onboarding-recap strong {
+  font-size: 9.5px;
+}
+
+.onboarding__footer,
+.onboarding__rail-footer {
+  font-size: 8.5px;
+}
