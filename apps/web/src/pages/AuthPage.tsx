@@ -70,9 +70,15 @@ export function AuthPage() {
       discord: ['DISCORD_CLIENT_ID', 'DISCORD_CLIENT_SECRET'],
       apple: ['APPLE_CLIENT_ID', 'APPLE_CLIENT_SECRET'],
     };
+    const redirectUris: Record<string, string> = {
+      google: 'http://127.0.0.1:8787/api/auth/oauth/google/callback',
+      github: 'http://127.0.0.1:8787/api/auth/oauth/github/callback',
+      discord: 'http://127.0.0.1:8787/api/auth/oauth/discord/callback',
+      apple: 'https://YOUR-DOMAIN/api/auth/oauth/apple/callback (Apple needs HTTPS + a paid developer account)',
+    };
     const [idKey, secretKey] = envKeys[providerId] ?? [`${providerId.toUpperCase()}_CLIENT_ID`, `${providerId.toUpperCase()}_CLIENT_SECRET`];
     setOauthHint(
-      `${label} sign-in is wired up and ready on the server — it just needs the ${label} app credentials in the server's .env file: set ${idKey} and ${secretKey}, then restart the service. See TUTORIAL.md → "Google / GitHub / Discord / Apple sign-in (OAuth)".`,
+      `${label} sign-in is fully wired on the server — it only needs your own ${label} OAuth app. Steps: (1) create a free OAuth app at the provider's developer console, (2) set the redirect URI to ${redirectUris[providerId] ?? 'the matching callback URL'}, (3) paste the values into .env as ${idKey}=... and ${secretKey}=..., (4) run "npm run restart". GitHub is the quickest to set up (no paid program). Full walkthrough: TUTORIAL.md → "Google / GitHub / Discord / Apple sign-in (OAuth)".`,
     );
   };
 
@@ -351,7 +357,7 @@ export function AuthPage() {
                 >
                   {OAUTH_ICONS[provider.id] ?? <UserRound size={16} />}
                   <span>{provider.label}</span>
-                  {!provider.configured ? <span className="oauth-button__soon">Not configured</span> : null}
+                  {!provider.configured ? <span className="oauth-button__soon">Needs setup</span> : null}
                 </a>
               ))}
             </div>
