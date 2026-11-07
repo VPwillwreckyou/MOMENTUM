@@ -39,7 +39,7 @@
 - New custom-color system (primary + secondary pickers, composite gradient) propagated to every shell: web dist rebuilt → `cap copy` synced Android and iOS projects (hash-verified both) → `MOMENTUM-android.apk` rebuilt and re-delivered at the repo root. Windows/Linux/mac serve the fresh dist directly. Doctor reports all-green including the APK↔web hash check.
 
 ### Known issues / follow-ups
-- `MOMENTUM.exe` opens its window under the repo-local `.app-profile`; other launchers use `%LOCALAPPDATA%\MOMENTUMAppProfile` — profile alignment queued for Qoder (plus single-instance behavior and `--no-sandbox` review).
+- ~~`MOMENTUM.exe` opens its window under the repo-local `.app-profile`~~ **Resolved 2026-11-07:** exe rebuilt from source — now uses `%LOCALAPPDATA%\MOMENTUMAppProfile` (same profile as the bat launchers, shared login), runs without `--no-sandbox`, and focuses the existing window instead of spawning a duplicate (single-instance verified: same window token on relaunch, single java process). Gate result: cold start → service 200 + window opens; double-click again → focuses existing window.
 - OAuth providers configured in `.env` await user-supplied credentials; buttons activate automatically per provider once both ID and secret exist. Apple additionally requires an HTTPS domain + Apple Developer Program.
 - Two transient `401` console entries in `e2e-groq` are expected pre-login probes, not bugs.
 
