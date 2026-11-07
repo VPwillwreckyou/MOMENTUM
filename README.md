@@ -212,9 +212,10 @@ Each goal can be exported to a professional PDF containing its title, descriptio
 ```powershell
 npm run test:web       # 26 unit tests: dates, progress, search, mutations, sync, validation
 npm run test:api       # 8 Java tests: JSON, hashing, rate limiting, accounts, sync store
+npm run test:colors    # 10 e2e checks: dual color pickers, gradient engine, OAuth guidance banner
 ```
 
-`npm run test:api` compiles test classes without rewriting the production jar, so it can run while the app is live.
+`npm run test:api` compiles test classes without rewriting the production jar, so it can run while the app is live. The web and API suites also run as GitHub Actions CI on every push.
 
 Browser end-to-end suites in `scripts/` were run against the production build. See [Testing](docs/TESTING.md) for exact results and how to run them. Covered flows include onboarding, goal/task/milestone CRUD, **real Groq plan generation and import**, PDF download, archive/restore, trash/restore, 30-day purge, attachment search, theme switching, account registration, session persistence, encrypted two-device sync merge, backup import/export, offline reload and mutation, and mobile viewport layout.
 

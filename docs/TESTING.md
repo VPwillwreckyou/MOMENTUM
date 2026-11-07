@@ -75,6 +75,7 @@ node scripts/e2e-offline.mjs
 node scripts/e2e-advanced.mjs
 node scripts/e2e-backup-import.mjs   # run after e2e-advanced (uses its backup)
 node scripts/e2e-sync.mjs
+node scripts/e2e-colors.mjs          # dual color pickers + OAuth guidance banner (npm run test:colors)
 node scripts/e2e-groq.mjs             # focused real-Groq plan test
 node scripts/e2e-desktop.mjs          # requires an interactive Electron session
 node scripts/test-desktop-backend.cjs dev

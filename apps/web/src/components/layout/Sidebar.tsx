@@ -119,7 +119,7 @@ export function Sidebar() {
         </div>
         <div className="sidebar__legal">
           <Command size={12} />
-          <span>Local-first · v1.0</span>
+          <span>Local-first · v{__APP_VERSION__}</span>
         </div>
       </div>
     </aside>

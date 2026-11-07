@@ -25,7 +25,7 @@ This file explains **every part of the project** and exactly **how to start it**
 | Web app in dev mode (programmers) | `npm run dev` | Vite dev server with hot reload |
 | Build the web app | `npm run build` | Creates `apps/web/dist` |
 | Run mobile apps | See "📱 Android / 🍎 iOS" section below | Needs Android Studio / Xcode |
-| Run all tests | `npm test` (unit) or `npm run test:ui` (browser test) | |
+| Run all tests | `npm test` (unit) · `npm run test:ui` (browser suite) · `npm run test:colors` (colors + sign-in helper e2e) | |
 
 > **Key fact:** every version of MOMENTUM (web, Windows, Android, iOS) is the **same web app** (`apps/web/dist`), and every device talks to the same local Java service. So starting the service (`MOMENTUM.exe` or `MOMENTUM Website.bat` does it automatically) is always step one.
 > **No internet is required to launch or use local features.** The Java service, web assets, fonts and icons all come from this folder; the PWA keeps a cached copy for reloads. Only AI replies (Groq) and optional Google/Apple/GitHub/Discord sign-in need a connection.
@@ -91,14 +91,15 @@ MOMENTUM/
 
 **How to launch:**
 - Double-click **`MOMENTUM.exe`** in this folder (recommended)
-- Or double-click `Launch MOMENTUM.bat` — same result, older PowerShell version
+- Or double-click `Launch MOMENTUM.bat` — same result, older PowerShell implementation
 
 **What it does, step by step:**
 1. Loads your settings from `.env` (Groq key, ports, OAuth keys)
 2. Checks `http://127.0.0.1:8787/api/health`; if the Java service is not running, starts it **hidden** (no black window)
 3. Waits until the service reports healthy
-4. Opens the app as a **standalone window**: Chrome in app mode with its own profile at `.app-profile-chrome\` next to `MOMENTUM.exe` (falls back to Edge, then to your default browser)
-5. Closing the window is safe — the service stays for the next launch
+4. Opens the app as a **standalone window** (`--app` mode). The window profile lives at `%LOCALAPPDATA%\MOMENTUMAppProfile` — shared by both launchers, so one login session (falls back to your default browser if Edge/Chrome are missing)
+5. Launching again while the window is open just **focuses the existing window** (single-instance) — never a duplicate
+6. Closing the window is safe — the service stays for the next launch
 
 **If `MOMENTUM.exe` needs to be rebuilt** after editing `apps/launcher/Program.cs`:
 ```powershell

@@ -37,6 +37,8 @@ apps/mobile/ios/App/App.xcodeproj/xcuserdata/
 # Compiled deliverables and machine-local artifacts (publish the APK as a GitHub Release asset instead)
 MOMENTUM-android.apk
 *.lnk
+# Dropped-in image experiments in the repo root (untracked personal files)
+/*.jpg
 # Compiled launcher (build it yourself: apps/launcher/build.ps1 — source lives in apps/launcher/)
 MOMENTUM.exe
 # Browser profile created by MOMENTUM.exe inside the repo — personal session data, never commit
