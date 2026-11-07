@@ -161,4 +161,4 @@ Before public deployment:
 - Session invalidation across devices is per-session; deleting the account removes all sessions, but there is no "sign out all devices" UI.
 - API rate limiting is in-memory per process; a multi-instance deployment needs a shared edge limiter.
 - No third-party security audit has been performed.
-- Native WebView cookie/CORS behavior for Capacitor needs platform-specific validation before production mobile release.
+- Native WebView cookie/CORS behavior for Capacitor: CORS preflight for the `https://localhost` (Android) and `capacitor://localhost` (iOS) WebView origins is verified against the running service (allowed for those origins, denied for foreign ones). End-to-end cookie/session behavior on a real device still needs a device run before a production mobile release.
