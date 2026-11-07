@@ -6,6 +6,14 @@
 - Commit identities rewritten to the GitHub noreply address before push (per GitHub privacy defaults).
 - Post-publish secret leak scan (GitHub code search for the Groq key): **0 hits**.
 
+### Weekend hardening round (all shipped same day)
+- **CI** (`ci.yml`): GitHub Actions now runs the web unit suite + production build, and compiles + runs the 8 Java API tests on every push/PR — both green after two iterations (yaml indentation fix; capacitor plugin-scaffold lesson).
+- **Release automation** (`release.yml`): pushing a `v*` tag builds the web app, runs `cap sync android`, compiles the debug APK on a Linux runner and attaches `MOMENTUM-android.apk` to the release automatically. First proven end-to-end with **v1.0.1** (cloud-built APK, 4.7 MB).
+- **New e2e suite** `npm run test:colors` (10 checks): onboarding dual color pickers, settings pickers, composite `--accent-linear` gradient consistency, and the unconfigured-provider OAuth guidance banner; zero console errors.
+- **README badges** (CI status, latest release) and **fresh screenshots** of the dual-color design.
+- **TUTORIAL.md**: new "Use MOMENTUM from anywhere" Tailscale section; corrected the app-session data location (`%LOCALAPPDATA%\MOMENTUMAppProfile` shared by exe + bat).
+- Electron `45.0.0-beta.7` retried on Windows 26H2 (crash persists; Edge app-mode remains the Windows delivery — documented environment limitation).
+
 ---
 
 ## 2026-11-06 — Launch & offline release (parallel agents: Claude/Qoder)
