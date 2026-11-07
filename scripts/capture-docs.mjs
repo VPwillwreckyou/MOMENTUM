@@ -20,7 +20,7 @@ await page.goto('http://127.0.0.1:8787/goals', { waitUntil: 'networkidle' });
 await page.waitForTimeout(700);
 await page.screenshot({ path: 'docs/screenshots/goals.png', fullPage: false });
 
-await page.locator('.goal-card').filter({ hasText: 'Spanish conversation in Madrid' }).first().click();
+await page.locator('.goal-card').filter({ hasText: 'Speak Spanish' }).first().click();
 await page.waitForTimeout(1000);
 await page.screenshot({ path: 'docs/screenshots/goal-detail.png', fullPage: true });
 
