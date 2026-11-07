@@ -2,6 +2,7 @@
 
 ## 2026-11-07 — Audit round (post-deployment)
 - **Mobile service address (biggest functional fix):** the Android/iOS shells previously made same-origin `/api` calls that could never reach the PC service, so the phone app had no way to reach AI or sync at all. The client now supports a runtime override (`Settings → Account & sync → Service address`, stored as `momentum.api-url`), and the Java service allows the Capacitor WebView origins (`https://localhost`, `capacitor://localhost`) by default — no `.env` edit needed for the phone-use case. Web/PWA on the PC is unchanged (same-origin).
+- Shipped as release **v1.0.2** (cloud-built via Actions, `MOMENTUM-android.apk` 4.7 MB attached; release pipeline proven again on this tag).
 - **Version badge wired to releases:** the sidebar "Local-first · v1.0" text is now injected from `apps/web/package.json` via a Vite `define` (`__APP_VERSION__`), so the UI version can never drift from the released package again — both package versions bumped to 1.0.1 to match release v1.0.1.
 - Added **CONTRIBUTING.md** for the public repository; `npm run test:colors` documented in README + TESTING + TUTORIAL cheat sheet; TUTORIAL Windows section corrected to the verified single-instance `%LOCALAPPDATA%\MOMENTUMAppProfile` behavior.
 - Rebuilt + re-synced the APK after the bundle changes; doctor back to 0 warnings; full regression batch green (`npm run test:web` 26, `npm run test:api` 8, e2e-full/offline/advanced/sync/backup-import/colors).
