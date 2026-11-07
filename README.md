@@ -210,7 +210,7 @@ Each goal can be exported to a professional PDF containing its title, descriptio
 ## Tests and verification
 
 ```powershell
-npm run test:web       # 26 unit tests: dates, progress, search, mutations, sync, validation
+npm run test:web       # 31 unit tests: dates, progress, search, mutations, sync, validation, api base resolution
 npm run test:api       # 8 Java tests: JSON, hashing, rate limiting, accounts, sync store
 npm run test:colors    # 10 e2e checks: dual color pickers, gradient engine, OAuth guidance banner
 ```
