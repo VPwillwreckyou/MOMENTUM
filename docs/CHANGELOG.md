@@ -1,5 +1,13 @@
 # MOMENTUM Changelog
 
+## 2026-11-07 — Public deployment
+- Repository published: **https://github.com/VPwillwreckyou/MOMENTUM** (17 topics, MIT license).
+- Release `v1.0.0` published with `MOMENTUM-android.apk` (5 MB) attached as a downloadable asset (the APK intentionally stays out of git history).
+- Commit identities rewritten to the GitHub noreply address before push (per GitHub privacy defaults).
+- Post-publish secret leak scan (GitHub code search for the Groq key): **0 hits**.
+
+---
+
 ## 2026-11-06 — Launch & offline release (parallel agents: Claude/Qoder)
 
 ### Windows launchers — all working
