@@ -33,7 +33,6 @@ Cookies are used; clients must send `credentials: 'include'` (the MOMENTUM web c
 {
   "providers": [
     { "id": "google", "label": "Google", "configured": false },
-    { "id": "apple", "label": "Apple", "configured": false },
     { "id": "github", "label": "GitHub", "configured": false },
     { "id": "discord", "label": "Discord", "configured": false }
   ]
@@ -76,7 +75,7 @@ User view fields: `id`, `email`, `name`, `provider`, `providers[]`, `hasPassword
 - `GET /api/auth/oauth/{provider}` → `302` to the provider (or `503` when unconfigured).
 - `GET|POST /api/auth/oauth/{provider}/callback` → validates state + PKCE, exchanges code, sets session cookie, redirects to the configured app URL with `?auth=success` or `?auth=error&message=...`.
 
-Apple uses `response_mode=form_post`, so its callback is a POST. Google, GitHub and Discord use GET callbacks.
+Google, GitHub and Discord use GET callbacks.
 
 ### Account deletion
 

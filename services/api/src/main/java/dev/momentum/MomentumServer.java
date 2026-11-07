@@ -267,7 +267,7 @@ public final class MomentumServer {
         String rest = path.substring(prefix.length());
         boolean callback = rest.endsWith("/callback");
         String provider = (callback ? rest.substring(0, rest.length() - "/callback".length()) : rest).toLowerCase(Locale.ROOT);
-        if (!Set.of("google", "apple", "github", "discord").contains(provider)) {
+        if (!Set.of("google", "github", "discord").contains(provider)) {
             HttpUtil.sendError(exchange, 404, "Unknown sign-in provider.");
             return;
         }

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  Apple,
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
@@ -38,7 +37,6 @@ function GoogleIcon() {
 
 const OAUTH_ICONS: Record<string, React.ReactNode> = {
   google: <GoogleIcon />,
-  apple: <Apple size={16} />,
   github: <Github size={16} />,
   discord: <MessageCircle size={16} />,
 };
@@ -68,13 +66,11 @@ export function AuthPage() {
       google: ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'],
       github: ['GITHUB_CLIENT_ID', 'GITHUB_CLIENT_SECRET'],
       discord: ['DISCORD_CLIENT_ID', 'DISCORD_CLIENT_SECRET'],
-      apple: ['APPLE_CLIENT_ID', 'APPLE_CLIENT_SECRET'],
     };
     const redirectUris: Record<string, string> = {
       google: 'http://127.0.0.1:8787/api/auth/oauth/google/callback',
       github: 'http://127.0.0.1:8787/api/auth/oauth/github/callback',
       discord: 'http://127.0.0.1:8787/api/auth/oauth/discord/callback',
-      apple: 'https://YOUR-DOMAIN/api/auth/oauth/apple/callback (Apple needs HTTPS + a paid developer account)',
     };
     const [idKey, secretKey] = envKeys[providerId] ?? [`${providerId.toUpperCase()}_CLIENT_ID`, `${providerId.toUpperCase()}_CLIENT_SECRET`];
     setOauthHint(

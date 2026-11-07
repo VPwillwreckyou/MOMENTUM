@@ -221,14 +221,13 @@ After changing `.env`, restart the service: `npm stop` → double-click `MOMENTU
 
 ## 🔐 Google / GitHub / Discord / Apple sign-in (OAuth)
 
-The login page has four sign-in buttons. They activate automatically once you create a free "OAuth app" on each provider and paste its ID + secret into `.env`. **Right now the four `*_CLIENT_ID` / `*_CLIENT_SECRET` values in `.env` are empty, so the buttons stay greyed ("Not configured") — the sign-in code is already complete and starts working the moment the values are filled in.** After editing `.env`, restart: `npm stop` then double-click `MOMENTUM.exe`.
+The login page has three sign-in buttons (Google, GitHub, Discord). They activate automatically once you create a free "OAuth app" on each provider and paste its ID + secret into `.env`. **Right now the `*_CLIENT_ID` / `*_CLIENT_SECRET` values in `.env` are empty, so the buttons stay hidden — the sign-in code is already complete and starts working the moment the values are filled in.** After editing `.env`, restart: `npm stop` then double-click `MOMENTUM.exe`. Apple sign-in was removed (it required a paid Apple Developer account + HTTPS domain).
 
 | Provider | Where to create | Redirect URI to register |
 |---|---|---|
 | 🔵 Google | cloud.google.com → APIs & Services → Credentials | `http://127.0.0.1:8787/api/auth/oauth/google/callback` |
 | 🖤 GitHub | github.com/settings/developers → New OAuth App | `http://127.0.0.1:8787/api/auth/oauth/github/callback` |
 | 💜 Discord | discord.com/developers/applications → OAuth2 | `http://127.0.0.1:8787/api/auth/oauth/discord/callback` |
-| 🍎 Apple | developer.apple.com ⚠️ needs HTTPS domain + paid Apple Developer Program | `https://YOUR-DOMAIN/api/auth/oauth/apple/callback` |
 
 Accounts link automatically when the same verified email is used, so you can sign in with Google one day and Discord the next without losing data.
 

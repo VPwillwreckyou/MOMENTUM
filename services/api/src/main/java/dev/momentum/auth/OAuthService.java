@@ -3,17 +3,12 @@ package dev.momentum.auth;
 import dev.momentum.core.HttpUtil;
 import dev.momentum.core.Json;
 import dev.momentum.core.Tokens;
-import java.math.BigInteger;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
 import java.security.MessageDigest;
-import java.security.PublicKey;
-import java.security.Signature;
-import java.security.spec.RSAPublicKeySpec;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -25,8 +20,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * OAuth 2.0 authorization-code flow with PKCE for Google, GitHub, Discord and
- * Apple. Credentials are read only from server environment variables.
+ * OAuth 2.0 authorization-code flow with PKCE for Google, GitHub and
+ * Discord. Credentials are read only from server environment variables.
  */
 public final class OAuthService {
     private static final Duration STATE_LIFETIME = Duration.ofMinutes(10);
@@ -36,8 +31,6 @@ public final class OAuthService {
 
     private record Profile(String provider, String subject, String email, String name, boolean verified) {}
 
-    private record AppleKeys(List<Map<String, Object>> keys, Instant fetchedAt) {}
-
     private final AccountStore accounts;
     private final Map<String, OAuthState> states = new LinkedHashMap<>();
     private final HttpClient http = HttpClient.newBuilder()
@@ -46,7 +39,6 @@ public final class OAuthService {
             .build();
     private final String publicBase;
     private final String appUrl;
-    private volatile AppleKeys appleKeys;
 
     public OAuthService(AccountStore accounts) {
         this.accounts = accounts;
@@ -64,7 +56,6 @@ public final class OAuthService {
             case "google" -> both("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET");
             case "github" -> both("GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET");
             case "discord" -> both("DISCORD_CLIENT_ID", "DISCORD_CLIENT_SECRET");
-            case "apple" -> both("APPLE_CLIENT_ID", "APPLE_CLIENT_SECRET");
             default -> false;
         };
     }
@@ -72,7 +63,6 @@ public final class OAuthService {
     public List<Map<String, Object>> providerStatuses() {
         List<Map<String, Object>> providers = new ArrayList<>();
         providers.add(status("google", "Google"));
-        providers.add(status("apple", "Apple"));
         providers.add(status("github", "GitHub"));
         providers.add(status("discord", "Discord"));
         return providers;
@@ -110,14 +100,6 @@ public final class OAuthService {
                     + "&state=" + enc(state)
                     + "&code_challenge=" + enc(challenge)
                     + "&code_challenge_method=S256&prompt=consent";
-            case "apple" -> "https://appleid.apple.com/auth/authorize?"
-                    + "client_id=" + enc(clientId(provider))
-                    + "&redirect_uri=" + enc(redirect)
-                    + "&response_type=code&scope=" + enc("name email")
-                    + "&response_mode=form_post"
-                    + "&state=" + enc(state)
-                    + "&code_challenge=" + enc(challenge)
-                    + "&code_challenge_method=S256";
             default -> throw new OAuthException("Unsupported sign-in method.");
         };
     }
@@ -141,7 +123,6 @@ public final class OAuthService {
             case "google" -> googleProfile(code, state.verifier());
             case "github" -> githubProfile(code, state.verifier());
             case "discord" -> discordProfile(code, state.verifier());
-            case "apple" -> appleProfile(code, state.verifier(), params.get("user"));
             default -> throw new OAuthException("Unsupported sign-in method.");
         };
         return accounts.oauth(profile.provider(), profile.subject(), profile.email(), profile.name(), profile.verified());
@@ -228,109 +209,12 @@ public final class OAuthService {
         return requireProfile("Discord", subject, email, name, verified);
     }
 
-    private Profile appleProfile(String code, String verifier, String rawUser) {
-        Map<String, String> form = new LinkedHashMap<>();
-        form.put("client_id", clientId("apple"));
-        form.put("client_secret", clientSecret("apple"));
-        form.put("code", code);
-        form.put("grant_type", "authorization_code");
-        form.put("redirect_uri", redirectUri("apple"));
-        form.put("code_verifier", verifier);
-        Map<String, Object> token = postForm("https://appleid.apple.com/auth/token", form);
-        String idToken = text(token.get("id_token"));
-        if (idToken == null) throw new OAuthException("Apple did not return an identity token.");
-        Map<String, Object> claims = verifyAppleIdentityToken(idToken);
-        String subject = text(claims.get("sub"));
-        String email = text(claims.get("email"));
-        Object emailVerifiedClaim = claims.get("email_verified");
-        boolean verified = Boolean.TRUE.equals(emailVerifiedClaim) || "true".equals(String.valueOf(emailVerifiedClaim));
-        String name = appleName(rawUser);
-        return requireProfile("Apple", subject, email, firstNonBlank(name, email), verified);
-    }
-
     private Profile requireProfile(String provider, String subject, String email, String name, boolean verified) {
         if (subject == null || subject.isBlank()) throw new OAuthException(provider + " did not return an account identifier.");
         return new Profile(provider.toLowerCase(Locale.ROOT), subject, email, name, verified);
     }
 
-    private String appleName(String rawUser) {
-        if (rawUser == null || rawUser.isBlank()) return null;
-        try {
-            Map<String, Object> user = Json.parseObject(rawUser);
-            if (user.get("name") instanceof Map<?, ?> nameMap) {
-                String first = text(nameMap.get("firstName"));
-                String last = text(nameMap.get("lastName"));
-                return firstNonBlank((first == null ? "" : first) + " " + (last == null ? "" : last), null);
-            }
-        } catch (Json.JsonException ignored) {
-            // Apple's user payload is optional.
-        }
-        return null;
-    }
-
     @SuppressWarnings("unchecked")
-    private Map<String, Object> verifyAppleIdentityToken(String idToken) {
-        try {
-            String[] parts = idToken.split("\\.");
-            if (parts.length != 3) throw new OAuthException("Apple returned an invalid identity token.");
-            Map<String, Object> header = Json.parseObject(new String(Base64.getUrlDecoder().decode(parts[0]), StandardCharsets.UTF_8));
-            Map<String, Object> claims = Json.parseObject(new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8));
-            String kid = text(header.get("kid"));
-            String alg = text(header.get("alg"));
-            if (kid == null || !"RS256".equals(alg)) throw new OAuthException("Apple returned an unsupported identity token.");
-            PublicKey publicKey = applePublicKey(kid);
-            if (publicKey == null) throw new OAuthException("Could not verify Apple identity token.");
-            Signature signature = Signature.getInstance("SHA256withRSA");
-            signature.initVerify(publicKey);
-            signature.update((parts[0] + "." + parts[1]).getBytes(StandardCharsets.UTF_8));
-            if (!signature.verify(Base64.getUrlDecoder().decode(parts[2]))) {
-                throw new OAuthException("Apple identity token signature is invalid.");
-            }
-            String issuer = text(claims.get("iss"));
-            String audience = text(claims.get("aud"));
-            Object expiry = claims.get("exp");
-            long expiresAt = expiry instanceof Number number ? number.longValue() : Long.parseLong(String.valueOf(expiry));
-            if (!"https://appleid.apple.com".equals(issuer)
-                    || !clientId("apple").equals(audience)
-                    || expiresAt < Instant.now().getEpochSecond()) {
-                throw new OAuthException("Apple identity token claims are invalid.");
-            }
-            return claims;
-        } catch (OAuthException exception) {
-            throw exception;
-        } catch (Exception exception) {
-            throw new OAuthException("Apple identity token could not be verified.");
-        }
-    }
-
-    private PublicKey applePublicKey(String kid) throws Exception {
-        AppleKeys cached = appleKeys;
-        if (cached == null || Duration.between(cached.fetchedAt(), Instant.now()).toMinutes() > 60) {
-            Map<String, Object> jwks = getJson("https://appleid.apple.com/auth/keys", null);
-            if (!(jwks.get("keys") instanceof List<?> keys)) return null;
-            List<Map<String, Object>> records = new ArrayList<>();
-            for (Object item : keys) {
-                if (item instanceof Map<?, ?> map) {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> record = (Map<String, Object>) map;
-                    records.add(record);
-                }
-            }
-            cached = new AppleKeys(records, Instant.now());
-            appleKeys = cached;
-        }
-        for (Map<String, Object> key : cached.keys()) {
-            if (!kid.equals(text(key.get("kid")))) continue;
-            String modulus = text(key.get("n"));
-            String exponent = text(key.get("e"));
-            if (modulus == null || exponent == null) continue;
-            BigInteger n = new BigInteger(1, Base64.getUrlDecoder().decode(modulus));
-            BigInteger e = new BigInteger(1, Base64.getUrlDecoder().decode(exponent));
-            return KeyFactory.getInstance("RSA").generatePublic(new RSAPublicKeySpec(n, e));
-        }
-        return null;
-    }
-
     private Map<String, Object> postForm(String url, Map<String, String> form) {
         HttpRequest request = HttpRequest.newBuilder(URI.create(url))
                 .timeout(Duration.ofSeconds(20))

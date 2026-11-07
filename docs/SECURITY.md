@@ -33,7 +33,7 @@ The design prioritizes **data minimization**. The server stores accounts, sessio
 
 ### OAuth
 
-Supported: Google, Apple, GitHub, Discord.
+Supported: Google, GitHub, Discord.
 
 - Authorization-code flow with PKCE S256.
 - Random state token stored server-side for 10 minutes and validated on callback.
@@ -43,13 +43,7 @@ Supported: Google, Apple, GitHub, Discord.
   - Verified email matching an existing account → link identity.
   - Unverified email matching an existing account → refused, avoiding email-based takeover.
 - GitHub account linking always checks `/user/emails` for `verified`, not just the public profile email.
-- Apple `id_token`:
-  - RS256 signature verified against Apple's JWKS.
-  - `iss`, `aud`, `exp` validated.
-  - No unsigned/decoded-only acceptance.
 - OAuth errors redirect to the configured app URL with an error message; no tokens are placed in URLs.
-
-**Operational requirement for Apple:** `APPLE_CLIENT_SECRET` is a JWT generated from the Apple team/key/service configuration. MOMENTUM consumes it; it does not generate long-lived Apple secrets. See Apple's "Creating a client secret" documentation. Rotate before expiry.
 
 **Untested path:** OAuth token exchange and callback flows require real provider credentials. They were implemented but not exercised end-to-end in this environment.
 
