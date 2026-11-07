@@ -162,13 +162,15 @@ Security headers include CSP, nosniff, no-referrer, frame denial and a restricti
 
 ## 6. CORS and cookies
 
-Default allowed development origins:
+Default allowed origins:
 
 - `http://127.0.0.1:5173`
 - `http://localhost:5173`
 - the configured public origin
+- `https://localhost` — the Capacitor Android WebView origin
+- `capacitor://localhost` — the Capacitor iOS WebView origin
 
-Add native/test origins with `MOMENTUM_ALLOWED_ORIGINS` (comma-separated exact origins). Mutating requests with an `Origin` header outside the allowlist are rejected with `403`. Cookies are `HttpOnly; SameSite=Lax`, and `Secure` when the server is configured for HTTPS.
+Add extra native/test origins with `MOMENTUM_ALLOWED_ORIGINS` (comma-separated exact origins). Mutating requests with an `Origin` header outside the allowlist are rejected with `403`. Cookies are `HttpOnly; SameSite=Lax`, and `Secure` when the server is configured for HTTPS.
 
 ## 7. Rate limits
 

@@ -46,3 +46,6 @@ MOMENTUM.exe
 # Local Gradle/Java runtime leftovers
 services/api/build/tmp/
 
+
+# TypeScript build cache
+*.tsbuildinfo
