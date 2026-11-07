@@ -339,28 +339,30 @@ export function AuthPage() {
             ) : null}
 
             <div className="oauth-grid">
-              {providers.map((provider) => (
-                <a
-                  key={provider.id}
-                  href={provider.configured ? apiUrl(`/api/auth/oauth/${provider.id}`) : undefined}
-                  className={`oauth-button${provider.configured ? '' : ' oauth-button--disabled'}`}
-                  aria-disabled={!provider.configured}
-                  title={provider.configured ? `Continue with ${provider.label}` : `${provider.label} is not configured on this server`}
-                  onClick={(event) => {
-                    if (!provider.configured) {
-                      event.preventDefault();
-                      handleOAuthClick(provider.id, provider.label, provider.configured);
-                      return;
-                    }
-                    handleOAuthClick(provider.id, provider.label, true);
-                  }}
-                >
-                  {OAUTH_ICONS[provider.id] ?? <UserRound size={16} />}
-                  <span>{provider.label}</span>
-                  {!provider.configured ? <span className="oauth-button__soon">Needs setup</span> : null}
-                </a>
-              ))}
+              {providers
+                .filter((provider) => provider.configured)
+                .map((provider) => (
+                  <a
+                    key={provider.id}
+                    href={apiUrl(`/api/auth/oauth/${provider.id}`)}
+                    className="oauth-button"
+                    title={`Continue with ${provider.label}`}
+                    onClick={() => handleOAuthClick(provider.id, provider.label, true)}
+                  >
+                    {OAUTH_ICONS[provider.id] ?? <UserRound size={16} />}
+                    <span>{provider.label}</span>
+                  </a>
+                ))}
             </div>
+            {providers.some((provider) => !provider.configured) ? (
+              <p className="auth-oauth-hint">
+                {providers
+                  .filter((provider) => !provider.configured)
+                  .map((provider) => provider.label)
+                  .join(', ')}{' '}
+                sign-in can be enabled in the server's <code>.env</code> (see TUTORIAL.md → "Google / GitHub / Discord / Apple sign-in (OAuth)"). Email and password work without any setup.
+              </p>
+            ) : null}
 
             <div className="auth-divider"><span>or use email</span></div>
 
