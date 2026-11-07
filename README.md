@@ -2,6 +2,10 @@
 
 **A local-first goal command center.** Turn an ambition into a structured, editable plan and keep the next move visible.
 
+[![CI](https://github.com/VPwillwreckyou/MOMENTUM/actions/workflows/ci.yml/badge.svg)](https://github.com/VPwillwreckyou/MOMENTUM/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/VPwillwreckyou/MOMENTUM?include_prereleases&color=blue)](https://github.com/VPwillwreckyou/MOMENTUM/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 ![MOMENTUM overview](docs/screenshots/dashboard-light.png)
 
 MOMENTUM is a complete, working application — not a mockup. Goals, tasks, milestones, categories, recurring series, notes, attachments, settings and deleted-item recovery are stored locally in IndexedDB and survive restarts. AI planning is provider-neutral, account authentication is optional, and cloud sync is explicit encrypted backup rather than silent upload.

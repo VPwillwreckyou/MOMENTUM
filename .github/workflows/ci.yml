@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  web:
+    name: Web — unit tests + build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm install --workspaces --include-workspace-root
+      - name: Unit tests
+        run: npm run test:web
+      - name: Build
+        run: npm run build
+
+  api:
+    name: Java API — build + tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Compile main sources + build jar
+        run: |
+          mkdir -p services/api/build/classes services/api/build/test-classes
+          find services/api/src/main/java -name '*.java' > /tmp/sources.txt
+          javac --release 21 -encoding UTF-8 -d services/api/build/classes @/tmp/sources.txt
+          cat > services/api/build/manifest.txt <<'EOF'
+          Manifest-Version: 1.0
+          Main-Class: dev.momentum.MomentumServer
+          Implementation-Title: MOMENTUM API
+          Implementation-Version: 1.0.0
+          EOF
+          jar --create --file services/api/build/momentum-api.jar --manifest services/api/build/manifest.txt -C services/api/build/classes .
+      - name: Compile + run Java tests
+        run: |
+          find services/api/src/test/java -name '*.java' > /tmp/test-sources.txt
+          javac --release 21 -encoding UTF-8 -cp services/api/build/classes -d services/api/build/test-classes @/tmp/test-sources.txt
+          java -ea -cp "services/api/build/classes:services/api/build/test-classes" dev.momentum.TestRunner
+      env:
+        MOMENTUM_AI_PROVIDERS: groq
+
