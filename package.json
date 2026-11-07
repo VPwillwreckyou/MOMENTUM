@@ -15,6 +15,7 @@
     "preview": "npm run preview -w @momentum/web",
     "test": "npm run test -w @momentum/web && npm run test:api",
     "test:web": "npm run test -w @momentum/web",
+    "test:colors": "node scripts/e2e-colors.mjs",
     "test:api": "powershell -NoProfile -ExecutionPolicy Bypass -File services/api/scripts/test.ps1",
     "api": "powershell -NoProfile -ExecutionPolicy Bypass -File services/api/scripts/run.ps1",
     "api:build": "powershell -NoProfile -ExecutionPolicy Bypass -File services/api/scripts/build.ps1",

@@ -240,11 +240,24 @@ Everything you create inside MOMENTUM is stored **only on this computer**:
 | Data | Location |
 |---|---|
 | Goals, tasks, attachments, accounts | `MOMENTUM/data/` (this folder) |
-| App-window login session (`MOMENTUM.exe`) | `.app-profile-chrome/` (this folder, created on first launch) |
-| App-window login session (`Launch MOMENTUM.bat`) | `%LOCALAPPDATA%\MOMENTUMAppProfile` |
+| App-window login session (`MOMENTUM.exe` and `Launch MOMENTUM.bat` — shared) | `%LOCALAPPDATA%\MOMENTUMAppProfile` |
 | Service logs (if something misbehaves) | `%TEMP%\momentum\service-out.log` & `service-err.log` |
 
 **Backup = copy the whole `MOMENTUM/data/` folder somewhere safe** (USB drive, cloud folder). Restoring = put the copy back and restart with `npm run restart`.
+
+---
+
+## 🌉 Use MOMENTUM from anywhere (not just home Wi-Fi)
+
+By default the service listens on `127.0.0.1` — your PC only. From a **different network** (school, work, mobile data), the easiest safe option is **Tailscale** (free for personal use):
+
+1. Install Tailscale on the PC **and** the phone: [tailscale.com/download](https://tailscale.com/download), sign in once, both devices join your private network.
+2. Find the PC's Tailscale name (check `ipconfig` after connecting — it's the `100.x.x.x` address), or run `tailscale ip -4` in a terminal on the PC.
+3. In the MOMENTUM folder's `.env`, add: `MOMENTUM_HOST=0.0.0.0`
+4. `npm run restart` → now also listen on the Tailscale network.
+5. On the phone, open the app and in **Settings → AI & connection** (or the app URL) use `http://<that-100.x.x.x>:8787` when not on your home Wi-Fi.
+
+**Never port-forward 8787 to the public internet directly.** Tailscale keeps the connection private between your own devices only.
 
 ---
 
