@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    name: Build Android APK and attach to release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Install dependencies
+        run: npm install --workspaces --include-workspace-root
+        working-directory: .
+      - name: Build web app
+        run: npm run build
+      - name: Sync web build into Capacitor shells
+        run: npm --prefix apps/mobile run copy
+      - name: Build debug APK
+        run: (cd apps/mobile/android && chmod +x gradlew && ./gradlew assembleDebug --console=plain -q)
+      - name: Rename APK
+        run: cp apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk MOMENTUM-android.apk
+      - name: Create GitHub release and upload APK
+        uses: softprops/action-gh-release@v2
+        with:
+          name: MOMENTUM ${{ github.ref_name }}
+          body: |
+            MOMENTUM ${{ github.ref_name }} — offline-first goal command center.
+
+            - APK attached below: install on Android (works offline)
+            - Web: clone + `npm install && npm start` (see README)
+            - Windows launchers and Linux/macOS scripts included in the source
+          files: |
+            MOMENTUM-android.apk
