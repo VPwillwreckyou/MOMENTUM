@@ -31,7 +31,8 @@ jobs:
       - name: Build web app
         run: npm run build
       - name: Sync web build into Capacitor shells
-        run: npm --prefix apps/mobile run copy
+        run: npx cap sync android
+        working-directory: apps/mobile
       - name: Build debug APK
         run: (cd apps/mobile/android && chmod +x gradlew && ./gradlew assembleDebug --console=plain -q)
       - name: Rename APK
