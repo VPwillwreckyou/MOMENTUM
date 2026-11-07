@@ -14,12 +14,39 @@ interface ApiOptions {
   signal?: AbortSignal;
 }
 
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '') ?? '';
+const BUILD_TIME_API_BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '') ?? '';
+
+/**
+ * Runtime service address override for native shells (Android/iOS), where a
+ * relative /api inside the WebView would never reach the local service.
+ * Web/PWA users leave it empty and get same-origin API routing.
+ */
+const API_URL_STORAGE_KEY = 'momentum.api-url';
+
+export function resolvedApiBase(): string {
+  if (BUILD_TIME_API_BASE) return BUILD_TIME_API_BASE;
+  try {
+    const configured = window.localStorage.getItem(API_URL_STORAGE_KEY)?.trim().replace(/\/+$/, '') ?? '';
+    return /^https?:\/\//i.test(configured) ? configured : '';
+  } catch {
+    return '';
+  }
+}
+
+export function setApiUrlOverride(value: string): void {
+  try {
+    const trimmed = value.trim().replace(/\/+$/, '');
+    if (trimmed) window.localStorage.setItem(API_URL_STORAGE_KEY, trimmed);
+    else window.localStorage.removeItem(API_URL_STORAGE_KEY);
+  } catch {
+    // Storage unavailable — the field simply has no effect.
+  }
+}
 
 /** Supports same-origin web/PWA and explicitly configured native shells. */
 export function apiUrl(path: string): string {
   if (/^https?:\/\//i.test(path)) return path;
-  return `${API_BASE}${path}`;
+  return `${resolvedApiBase()}${path}`;
 }
 
 export async function apiRequest<T>(path: string, options: ApiOptions = {}): Promise<T> {

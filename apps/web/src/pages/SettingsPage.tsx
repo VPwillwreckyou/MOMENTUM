@@ -33,6 +33,7 @@ import { Input, SegmentedControl, Toggle } from '../components/ui/Fields';
 import { ConfirmDialog, Modal } from '../components/ui/Modal';
 import { ACCENT_PRESETS, AI_PROVIDER_LOCK, PROVIDER_DEFAULTS } from '../lib/defaults';
 import { normalizeSettings, normalizeWorkspace } from '../lib/repository';
+import { resolvedApiBase, setApiUrlOverride } from '../lib/api';
 import { encryptSecret } from '../lib/vault';
 import { validateHex } from '../lib/validation';
 import { testAIConnection } from '../lib/ai';
@@ -77,6 +78,7 @@ export function SettingsPage() {
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiShowKey, setAiShowKey] = useState(false);
   const [storageUsage, setStorageUsage] = useState<{ usage?: number; quota?: number; persisted?: boolean } | null>(null);
+  const [apiUrlDraft, setApiUrlDraft] = useState(() => resolvedApiBase());
   const [eraseOpen, setEraseOpen] = useState(false);
   const [eraseText, setEraseText] = useState('');
   const [eraseBusy, setEraseBusy] = useState(false);
@@ -667,6 +669,28 @@ export function SettingsPage() {
                 </Link>
               </div>
             )}
+            <div className="settings-field-block">
+              <span className="field__label">Service address (Android/iOS shells)</span>
+              <Input
+                aria-label="MOMENTUM service address"
+                value={apiUrlDraft}
+                onChange={(event) => {
+                  setApiUrlDraft(event.target.value);
+                  setApiUrlOverride(event.target.value);
+                }}
+                placeholder="Empty = same-origin (browser on this PC)"
+                spellCheck={false}
+                inputMode="url"
+                autoCapitalize="off"
+                autoCorrect="off"
+              />
+              <p className="field__hint">
+                The phone app itself is offline-first. Enter where it can reach the service running on your PC when you want
+                AI replies and encrypted sync there too: <code>http://&lt;pc-ip&gt;:8787</code> on the same Wi-Fi (run
+                <code> ipconfig </code> to find it), or your Tailscale <code>100.x.x.x</code> address to use it from anywhere.
+                The browser and PWA on this PC leave it empty.
+              </p>
+            </div>
             <SyncPanel />
           </section>
 

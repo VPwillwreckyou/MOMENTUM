@@ -100,7 +100,11 @@ Build/run from Android Studio, or use Gradle from the generated project. The app
 
 ### Native API configuration
 
-The bundled client makes same-origin `/api/*` calls by default. Inside the Capacitor WebView, `/api` points to the WebView origin, not the Java server. Build the web app with an API origin:
+The bundled client makes same-origin `/api/*` calls by default. Inside the Capacitor WebView, `/api` points to the WebView origin, not the Java server. Two ways to point the shell at a real service:
+
+**Runtime (recommended, no rebuild):** in the app's *Settings → Account & sync → Service address*, enter the address of the PC running the service — `http://<pc-ip>:8787` on the same Wi-Fi, or the Tailscale `100.x.x.x` address of the PC to reach it from anywhere. The value is stored in the shell's `localStorage` (`momentum.api-url`). The server already allows the Capacitor WebView origins (`https://localhost` for Android, `capacitor://localhost` for iOS) out of the box; when the PC is reached over the LAN/Tailscale rather than `127.0.0.1`, make sure the service was started with `MOMENTUM_HOST=0.0.0.0`.
+
+**Build time:** bake a fixed API origin into the bundle instead:
 
 ```powershell
 $env:VITE_API_URL = 'https://api.your-domain.example'
@@ -173,7 +177,7 @@ The Xcode project and app icon/splash assets are generated. **iOS compilation an
 | Notifications | Browser permissions | Not implemented | Native plugin needed | Native plugin needed |
 | PDF export | Yes (download) | Yes | Uses WebView download handling | Uses share sheet/WebView behavior (test needed) |
 | Attachments | Yes | Yes | WebView file picker | WebView file picker |
-| Auth/AI/sync | Yes when API reachable | Requires API base setup | Requires API base + CORS/cookie testing | Requires API base + CORS/cookie testing |
+| Auth/AI/sync | Yes when API reachable | Requires API base setup | Enter the PC service address in Settings → Account & sync (see Native API configuration) | Enter the PC service address in Settings → Account & sync (see Native API configuration) |
 | Deep links | URLs | custom scheme | Capacitor scheme config | Universal links config |
 
 ## 7. Platform QA checklist

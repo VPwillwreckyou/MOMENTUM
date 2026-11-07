@@ -474,6 +474,9 @@ public final class MomentumServer {
         Set<String> origins = new LinkedHashSet<>();
         origins.add("http://127.0.0.1:5173");
         origins.add("http://localhost:5173");
+        // Capacitor shells (Android WebView uses the https scheme, iOS uses capacitor://).
+        origins.add("https://localhost");
+        origins.add("capacitor://localhost");
         origins.add(publicBase);
         String configured = System.getenv("MOMENTUM_ALLOWED_ORIGINS");
         if (configured != null && !configured.isBlank()) {

@@ -146,7 +146,7 @@ The mobile app is the web app wrapped into a native Android shell (Capacitor).
 1. Install **Android Studio** ([developer.android.com/studio](https://developer.android.com/studio)) — it brings the Android SDK with it
 2. Run Android Studio once and finish the setup wizard
 
-**Ready-made APK:** `MOMENTUM-android.apk` in this folder is already built and signed (debug key). Copy it to the phone and install it (allow "install unknown apps" for the file manager). The full web app is bundled inside, so it opens and keeps goals offline; AI replies and account sync still need the MOMENTUM service running on a computer.
+**Ready-made APK:** `MOMENTUM-android.apk` in this folder is already built and signed (debug key). Copy it to the phone and install it (allow "install unknown apps" for the file manager). The full web app is bundled inside, so it opens and keeps goals fully offline. To also get **AI replies and encrypted sync** on the phone, start the service on your PC and then go to **Settings → Account & sync → Service address** in the app and enter the PC's address: `http://<pc-ip>:8787` on the same Wi-Fi (run `ipconfig` on the PC to find it), or the PC's Tailscale `100.x.x.x` address to use it from anywhere. Leave the field empty in the browser/PWA on the PC itself — there the app talks to the service directly.
 
 **Build & run:**
 ```powershell
@@ -256,7 +256,7 @@ By default the service listens on `127.0.0.1` — your PC only. From a **differe
 2. Find the PC's Tailscale name (check `ipconfig` after connecting — it's the `100.x.x.x` address), or run `tailscale ip -4` in a terminal on the PC.
 3. In the MOMENTUM folder's `.env`, add: `MOMENTUM_HOST=0.0.0.0`
 4. `npm run restart` → now also listen on the Tailscale network.
-5. On the phone, open the app and in **Settings → AI & connection** (or the app URL) use `http://<that-100.x.x.x>:8787` when not on your home Wi-Fi.
+5. On the phone, open the app and go to **Settings → Account & sync → Service address** and enter `http://<that-100.x.x.x>:8787` — this is the same field from the Android section above, and it works from any network since Tailscale connects the devices directly.
 
 **Never port-forward 8787 to the public internet directly.** Tailscale keeps the connection private between your own devices only.
 
