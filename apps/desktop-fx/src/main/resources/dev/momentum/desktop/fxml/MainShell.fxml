@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.GridPane?>
+
+<StackPane fx:id="root" styleClass="root" xmlns:fx="http://javafx.com/fxml"
+           fx:controller="dev.momentum.desktop.ui.ShellController">
+
+    <VBox fx:id="windowFrame" styleClass="window-frame">
+        <!-- Titlebar: brand, current page, profile, window controls -->
+        <HBox fx:id="titlebar" styleClass="titlebar" alignment="CENTER_LEFT" spacing="10">
+            <Label fx:id="brandLabel" styleClass="brand" text="&#x25C6; MOMENTUM"/>
+            <Label fx:id="pageTitle" styleClass="page-chip" text="Dashboard"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <StackPane styleClass="profile">
+                <HBox alignment="CENTER_RIGHT" spacing="8">
+                    <Label styleClass="avatar" text="V"/>
+                    <Label styleClass="profile-name" text="Local profile"/>
+                </HBox>
+            </StackPane>
+            <HBox styleClass="window-buttons" alignment="CENTER_RIGHT">
+                <Button fx:id="minimizeButton" styleClass="win-btn" text="&#x2014;">
+                    <tooltip><Tooltip text="Minimize"/></tooltip>
+                </Button>
+                <Button fx:id="maximizeButton" styleClass="win-btn" text="&#x25A1;">
+                    <tooltip><Tooltip text="Maximize"/></tooltip>
+                </Button>
+                <Button fx:id="closeButton" styleClass="win-btn,win-close" text="&#x2715;">
+                    <tooltip><Tooltip text="Close"/></tooltip>
+                </Button>
+            </HBox>
+        </HBox>
+
+        <!-- Body: sidebar + content -->
+        <HBox styleClass="body" VBox.vgrow="ALWAYS">
+            <VBox fx:id="sidebar" styleClass="sidebar" spacing="4">
+                <GridPane styleClass="side-head" hgap="10" vgap="2">
+                    <Label styleClass="side-logo" text="&#x25C6;" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <VBox GridPane.columnIndex="1" GridPane.rowIndex="0" spacing="1">
+                        <Label styleClass="side-title" text="MOMENTUM"/>
+                        <Label styleClass="side-subtitle" text="Native desktop"/>
+                    </VBox>
+                </GridPane>
+                <Label styleClass="nav-section" text="TRACKING"/>
+                <VBox fx:id="navBox" spacing="2"/>
+                <Region fx:id="navSpacer"/>
+                <StackPane fx:id="footerStatus" styleClass="side-footer"/>
+            </VBox>
+            <StackPane fx:id="contentHost" styleClass="content" HBox.hgrow="ALWAYS"/>
+        </HBox>
+    </VBox>
+
+    <!-- Overlay layers -->
+    <StackPane fx:id="modalLayerHost" visible="false" managed="false"/>
+    <StackPane fx:id="toastLayerHost" visible="false" managed="false"/>
+</StackPane>

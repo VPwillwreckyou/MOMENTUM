@@ -1,0 +1,484 @@
+/* ============================================================
+   MOMENTUM — native JavaFX theme
+   Dark cyber aesthetic. The accent color is a looked-up color
+   (-accent / -accent-dim / -accent-faint) injected on the root
+   at runtime by ThemeManager; everything below derives from it.
+   ============================================================ */
+
+.root {
+    -accent: #22d3ee;
+    -accent-dim: #0e5761;
+    -accent-faint: rgba(34, 211, 238, 0.14);
+    -fx-background-color: #01030a;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+    -fx-font-smoothing-type: gray;
+    -fx-opacity: 1;
+}
+
+/* The window frame carries the real layered background. */
+.window-frame {
+    -fx-background-color: #05070d;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.55), 24, 0.1, 0, 4);
+    -fx-border-width: 1;
+    -fx-border-color: #131c2e;
+}
+
+.root { -fx-background-insets: 0; -fx-alignment: center; }
+
+/* ------------------------------------------------ titlebar */
+.titlebar {
+    -fx-background-color: linear-gradient(to bottom, #0b1019, #0a0e17);
+    -fx-border-color: transparent transparent #131c2e transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 8 6 8 16;
+    -fx-alignment: center-left;
+    -fx-min-height: 46;
+    -fx-cursor: move;
+}
+
+.brand {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-alignment: center-left;
+}
+
+.page-chip {
+    -fx-background-color: -accent-faint;
+    -fx-text-fill: -accent;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 20;
+}
+
+.profile {
+    -fx-background-color: rgba(255, 255, 255, 0.03);
+    -fx-background-radius: 10;
+    -fx-padding: 6 12 6 8;
+    -fx-cursor: hand;
+}
+
+.profile:hover { -fx-background-color: rgba(255, 255, 255, 0.06); }
+
+.avatar {
+    -fx-background-color: -accent-dim;
+    -fx-text-fill: -accent;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-background-radius: 50%;
+    -fx-alignment: center;
+    -fx-padding: 2 0 2 0;
+    -fx-min-width: 22;
+    -fx-min-height: 22;
+    -fx-border-radius: 50%;
+}
+
+.profile-name {
+    -fx-text-fill: #cbd5e1;
+    -fx-font-size: 12px;
+}
+
+.window-buttons { -fx-spacing: 0; -fx-alignment: center-right; }
+
+.win-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #93a1bb;
+    -fx-min-width: 44;
+    -fx-min-height: 32;
+    -fx-max-height: 32;
+    -fx-padding: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-alignment: center;
+}
+
+.win-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-text-fill: #ffffff;
+}
+
+.win-btn:pressed { -fx-background-color: rgba(255, 255, 255, 0.14); }
+
+.win-close:hover { -fx-background-color: #e11d48; -fx-text-fill: #ffffff; }
+
+/* ------------------------------------------------ body layout */
+.body { -fx-fill: #05070d; }
+
+.sidebar {
+    -fx-background-color: linear-gradient(to bottom, #0a0e17, #0c1120);
+    -fx-border-color: transparent #131c2e transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-padding: 18 10 14 10;
+    -fx-min-width: 238;
+    -fx-pref-width: 238;
+}
+
+.side-head { -fx-padding: 0 8 16 8; }
+
+.side-logo {
+    -fx-text-fill: -accent;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, -accent, 12, 0.25, 0, 0);
+}
+
+.side-title {
+    -fx-text-fill: #f1f5f9;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-letter-spacing: 2;
+}
+
+.side-subtitle {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 10px;
+}
+
+.nav-section {
+    -fx-text-fill: #475569;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 10 6 10;
+}
+
+.nav-item {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-padding: 9 12 9 12;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+    -fx-max-width: 100000;
+}
+
+.nav-item > * { -fx-background-color: transparent; }
+
+.nav-icon {
+    -fx-text-fill: #7dd3fc88;
+    -fx-font-size: 14px;
+    -fx-min-width: 20;
+    -fx-alignment: center-left;
+}
+
+.nav-text {
+    -fx-text-fill: #9fb0cb;
+    -fx-font-size: 13px;
+}
+
+.nav-item:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.045);
+    -fx-text-fill: #e2e8f0;
+}
+
+.nav-item:hover .nav-text { -fx-text-fill: #e2e8f0; }
+
+.nav-item.active {
+    -fx-background-color: linear-gradient(to right, -accent-faint, transparent);
+    -fx-border-color: -accent transparent transparent transparent;
+    -fx-border-width: 0 0 0 0;
+}
+
+.nav-item.active .nav-icon {
+    -fx-text-fill: -accent;
+    -fx-effect: dropshadow(gaussian, -accent, 10, 0.3, 0, 0);
+}
+
+.nav-item.active .nav-text {
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+}
+
+.nav-item.active {
+    -fx-background-color: -accent-faint;
+}
+
+.side-footer { -fx-padding: 10 8 0 8; -fx-alignment: center-left; }
+
+.db-dot {
+    -fx-text-fill: #34d399;
+    -fx-font-size: 10px;
+    -fx-effect: dropshadow(gaussian, #34d399, 8, 0.4, 0, 0);
+}
+
+.db-label {
+    -fx-text-fill: #7a8aa5;
+    -fx-font-size: 10px;
+    -fx-letter-spacing: 1.5;
+}
+
+/* ------------------------------------------------ content */
+.content {
+    -fx-background-color:
+        radial-gradient(center 10% -5%, radius 55%, -accent-faint, transparent 65%),
+        radial-gradient(center 95% 110%, radius 60%, rgba(139, 92, 246, 0.06), transparent 70%),
+        #05070d;
+    -fx-padding: 24 28;
+}
+
+.content-scroll {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.content-scroll .viewport { -fx-background-color: transparent; }
+.content-scroll > .corner { -fx-background-color: transparent; }
+
+.page { -fx-background-color: transparent; }
+
+.page-title {
+    -fx-text-fill: #f1f5f9;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+/* ------------------------------------------------ cards */
+.card {
+    -fx-background-color: linear-gradient(to bottom, #0c1322, #0a0f1c);
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-width: 1;
+    -fx-border-color: #1b2740;
+    -fx-padding: 20 22 20 22;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 14, 0.05, 0, 3);
+}
+
+.card:hover { -fx-border-color: #253656; }
+
+.card-row { -fx-background-color: transparent; }
+
+.hero-card { -fx-padding: 24; }
+
+.hero-title {
+    -fx-text-fill: #f8fafc;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.hero-sub { -fx-text-fill: #9fb0cb; -fx-font-size: 13px; }
+
+.hero-glyph {
+    -fx-text-fill: -accent;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, -accent, 18, 0.35, 0, 0);
+}
+
+.hero-note {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 11px;
+    -fx-font-style: italic;
+}
+
+.hint-card { -fx-border-color: #2b3b5f; }
+
+/* ------------------------------------------------ stats */
+.stat-grid { -fx-background-color: transparent; }
+
+.stat-card {
+    -fx-background-color: linear-gradient(to bottom right, #0d1526, #0a101d);
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-border-color: #1b2740;
+    -fx-padding: 16 18 16 18;
+    -fx-min-width: 150;
+}
+
+.stat-value {
+    -fx-text-fill: -accent;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, -accent, 16, 0.3, 0, 0);
+}
+
+.stat-name {
+    -fx-text-fill: #7a8aa5;
+    -fx-font-size: 11px;
+    -fx-letter-spacing: 0.5;
+}
+
+/* ------------------------------------------------ buttons */
+.btn {
+    -fx-background-color: #141d33;
+    -fx-text-fill: #dbe4f0;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-border-color: #26344f;
+    -fx-padding: 8 16 8 16;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
+}
+
+.btn:hover {
+    -fx-background-color: #1b2745;
+    -fx-border-color: #33456a;
+}
+
+.btn:pressed { -fx-background-color: #101828; }
+
+.btn-primary {
+    -fx-background-color: linear-gradient(to bottom, -accent, -accent-dim);
+    -fx-text-fill: #04121c;
+    -fx-border-color: transparent;
+}
+
+.btn-primary:hover { -fx-border-color: transparent; }
+
+.btn-ghost {
+    -fx-background-color: transparent;
+    -fx-border-color: #26344f;
+}
+
+.btn-danger {
+    -fx-background-color: linear-gradient(to bottom, #fb7185, #be5068);
+    -fx-text-fill: #22060b;
+    -fx-border-color: transparent;
+}
+
+.btn-small { -fx-padding: 4 12 4 12; -fx-font-size: 11px; }
+
+/* ------------------------------------------------ theme swatches */
+.swatch {
+    -fx-background-color: -swatch-accent;
+    -fx-text-fill: #04121c;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-width: 2;
+    -fx-border-color: transparent;
+    -fx-padding: 6 14 6 14;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, -swatch-accent, 14, 0.35, 0, 0);
+}
+
+.swatch:hover { -fx-border-color: #e2e8f0cc; }
+
+.swatch.selected {
+    -fx-border-color: #ffffff;
+    -fx-effect: dropshadow(gaussian, -swatch-accent, 20, 0.6, 0, 0);
+}
+
+.card-title {
+    -fx-text-fill: #e2e8f0;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.mono-text {
+    -fx-fill: #9fb0cb;
+    -fx-font-size: 12px;
+    -fx-font-smoothing-type: gray;
+}
+
+/* ------------------------------------------------ toasts */
+.toast {
+    -fx-background-color: #0f1727;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 12 16 12 14;
+    -fx-spacing: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 18, 0.1, 0, 4);
+}
+
+.toast-glyph {
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-min-width: 22;
+    -fx-min-height: 22;
+    -fx-background-radius: 50%;
+    -fx-alignment: center;
+}
+
+.toast-text { -fx-text-fill: #e2e8f0; -fx-font-size: 12px; }
+
+.toast-success { -fx-border-color: #34d39966; }
+.toast-success .toast-glyph { -fx-text-fill: #34d399; }
+
+.toast-error { -fx-border-color: #fb718566; }
+.toast-error .toast-glyph { -fx-text-fill: #fb7185; }
+
+.toast-info { -fx-border-color: #60a5fa66; }
+.toast-info .toast-glyph { -fx-text-fill: #60a5fa; }
+
+/* ------------------------------------------------ modals */
+.modal-layer {
+    -fx-background-color: rgba(2, 5, 12, 0.74);
+    -fx-border-color: transparent;
+}
+
+.modal-card {
+    -fx-background-color: linear-gradient(to bottom, #141d33, #0e1526);
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
+    -fx-border-width: 1;
+    -fx-border-color: #33456a;
+    -fx-padding: 20 24 20 24;
+    -fx-min-width: 380;
+    -fx-max-width: 640;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.75), 36, 0.2, 0, 10);
+}
+
+.modal-header { -fx-padding: 0 0 12 0; }
+
+.modal-title {
+    -fx-text-fill: #f8fafc;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.modal-content { -fx-padding: 14 0 16 0; }
+
+.modal-content .label { -fx-text-fill: #cbd5e1; -fx-font-size: 13px; }
+
+.modal-actions { -fx-alignment: center-right; -fx-padding: 14 0 0 0; }
+
+.modal-card .separator .line {
+    -fx-border-color: transparent transparent #1b2740 transparent;
+    -fx-background-color: #1b2740;
+}
+
+/* ------------------------------------------------ scrollbars */
+.scroll-bar {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #223050;
+    -fx-background-radius: 6;
+}
+
+.scroll-bar .thumb:hover { -fx-background-color: #2d3d63; }
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-shape: null;
+    -fx-background-color: transparent;
+}
+
+/* ------------------------------------------------ tooltips */
+.tooltip {
+    -fx-background-color: #101828;
+    -fx-text-fill: #cbd5e1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #26344f;
+    -fx-padding: 6 10 6 10;
+    -fx-font-size: 11px;
+}
+
+/* ------------------------------------------------ separator */
+.separator .line { -fx-border-color: transparent transparent #1b2740 transparent; }

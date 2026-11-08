@@ -49,6 +49,7 @@ MOMENTUM-android.apk
 # Browser profile created by MOMENTUM.exe inside the repo — personal session data, never commit
 .app-profile/
 # Local Gradle/Java runtime leftovers
+.gradle/
 services/api/build/tmp/
 # SQLite JDBC (downloaded by build script if missing)
 services/api/lib/sqlite-jdbc.jar
