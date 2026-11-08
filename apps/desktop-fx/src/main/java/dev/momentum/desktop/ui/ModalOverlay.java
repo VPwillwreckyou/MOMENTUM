@@ -2,6 +2,7 @@ package dev.momentum.desktop.ui;
 
 import java.util.ArrayList;
 import java.util.List;
+import javafx.event.EventHandler;
 import javafx.animation.FadeTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -10,6 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -32,6 +34,7 @@ public final class ModalOverlay {
 
     private final StackPane layer;
     private final VBox card;
+    private final EventHandler<KeyEvent> sceneEscHandler;
     private boolean blocking;
 
     public ModalOverlay() {
@@ -49,6 +52,12 @@ public final class ModalOverlay {
         this.card.setMouseTransparent(false);
         this.layer.setMouseTransparent(false);
         this.layer.setAlignment(Pos.CENTER);
+        this.sceneEscHandler = event -> {
+            if (event.getCode() == KeyCode.ESCAPE && !blocking && layer.isVisible()) {
+                hide();
+                event.consume();
+            }
+        };
     }
 
     public StackPane layer() {
@@ -107,8 +116,10 @@ public final class ModalOverlay {
                 hide();
             }
         });
-        // Ask the scene for focus routing for ESC.
+        // Scene-level ESC handler so ESC works even when focus is inside
+        // a focusable child (e.g. a text field or button).
         if (layer.getScene() != null) {
+            layer.getScene().addEventFilter(KeyEvent.KEY_PRESSED, sceneEscHandler);
             layer.requestFocus();
         }
         FadeTransition fadeIn = new FadeTransition(Duration.millis(120), card);
@@ -125,5 +136,8 @@ public final class ModalOverlay {
         this.blocking = false;
         layer.setVisible(false);
         layer.setManaged(false);
+        if (layer.getScene() != null) {
+            layer.getScene().removeEventFilter(KeyEvent.KEY_PRESSED, sceneEscHandler);
+        }
     }
 }
