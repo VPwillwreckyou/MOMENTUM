@@ -100,7 +100,8 @@ public final class GoalCard {
             default          -> statusChip.setStyle("-fx-text-fill: -accent; -fx-background-color: -accent-faint;");
         }
         toggle.setText("completed".equals(status) ? "Reopen" : "Complete");
-        archive.setText("archived".equals(status) ? "Restore" : "Archive");
+        boolean isTrashed = isTrashed(goal);
+        archive.setText(isTrashed ? "Restore" : "Archive");
         archive.setOnAction(event -> {
             if ("archived".equals(status)) {
                 restoreGoal();
@@ -116,8 +117,14 @@ public final class GoalCard {
         });
         edit.setOnAction(event -> { if (onEdit != null) onEdit.run(); });
         toggle.setOnAction(event -> toggleCompletion());
-        archive.setOnAction(event -> archiveGoal());
-        trash.setOnAction(event -> trashGoal());
+
+        if (isTrashed) {
+            trash.setText("Permanently delete");
+            trash.setOnAction(event -> purgeGoal());
+        } else {
+            trash.setText("Delete");
+            trash.setOnAction(event -> trashGoal());
+        }
     }
 
     private String formatDate(String iso) {
@@ -140,6 +147,40 @@ public final class GoalCard {
 
     private void runOnChanged() {
         if (onChanged != null) onChanged.run();
+    }
+
+    private boolean isTrashed(Map<String, Object> g) {
+        String deletedAt = valueOr(g, "deletedAt", "");
+        return deletedAt != null && !deletedAt.isEmpty();
+    }
+
+    private void purgeGoal() {
+        if (goal == null) return;
+        String id = String.valueOf(goal.get("id"));
+        modals.show("Permanently delete goal?",
+                new Label("Permanently delete \u201c" + valueOr(goal, "title", "this goal") + "\u201d? "
+                        + "This cannot be undone. All tasks, milestones, notes, and attachments "
+                        + "associated with this goal will be lost."),
+                new ModalOverlay.Action("Delete permanently", ModalOverlay.Tone.DANGER, () -> {
+                    try {
+                        host.withRepository(repository -> {
+                            try {
+                                repository.purgeGoal(id);
+                                repository.recordActivity("goal-purged", id, null,
+                                        "Permanently deleted goal");
+                                return null;
+                            } catch (SQLException e) {
+                                throw new RuntimeException(e);
+                            }
+                        });
+                        toasts.show("Goal permanently deleted", ToastHost.Tone.SUCCESS);
+                        runOnChanged();
+                    } catch (RuntimeException e) {
+                        toasts.show("Could not delete goal: " + e.getCause().getMessage(),
+                                ToastHost.Tone.ERROR);
+                    }
+                }),
+                new ModalOverlay.Action("Cancel", ModalOverlay.Tone.PRIMARY, modals::hide));
     }
 
     private void restoreGoal() {
