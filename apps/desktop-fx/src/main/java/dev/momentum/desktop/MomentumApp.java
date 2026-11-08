@@ -3,7 +3,9 @@ package dev.momentum.desktop;
 import dev.momentum.desktop.host.ServiceHost;
 import dev.momentum.desktop.ui.NavDestination;
 import dev.momentum.desktop.ui.ShellController;
+import dev.momentum.desktop.util.Logger;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Map;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -21,6 +23,8 @@ import javafx.stage.StageStyle;
  */
 public class MomentumApp extends Application {
 
+    public static final String VERSION = "1.0.0";
+
     private static volatile ServiceHost sharedHost;
     private ServiceHost host;
 
@@ -36,7 +40,8 @@ public class MomentumApp extends Application {
     public void init() throws IOException {
         this.host = new ServiceHost(ServiceHost.defaultDataDirectory());
         momentumHost(host);
-        System.out.println("MOMENTUM desktop shell starting. Data: " + host.dataDirectory());
+        Logger.init(host.dataDirectory().resolve("logs"));
+        Logger.info("MOMENTUM desktop shell starting. Data: " + host.dataDirectory());
     }
 
     /** Publishes a host instance for FXML controllers (also used by the smoke test). */
@@ -62,6 +67,14 @@ public class MomentumApp extends Application {
         stage.setScene(scene);
         stage.setResizable(true);
         stage.centerOnScreen();
+        // Add application icon to the window frame and taskbar.
+        try {
+            stage.getIcons().add(new javafx.scene.image.Image(
+                    MomentumApp.class.getResourceAsStream(
+                            "/dev/momentum/desktop/icon.ico")));
+        } catch (Exception e) {
+            System.err.println("MOMENTUM: Could not load application icon: " + e.getMessage());
+        }
         stage.show();
 
         // One-shot interstitial: the shell is alive.
@@ -94,11 +107,11 @@ public class MomentumApp extends Application {
             try {
                 host.checkpointWAL();
             } catch (Exception e) {
-                System.err.println("MOMENTUM: WAL checkpoint on shutdown failed: "
-                        + e.getMessage());
+                Logger.error("WAL checkpoint on shutdown failed: " + e.getMessage(), e);
             }
             host.close();
         }
+        Logger.info("MOMENTUM desktop shell stopped.");
     }
 
     public static void main(String[] args) {

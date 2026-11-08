@@ -2,6 +2,7 @@ package dev.momentum.desktop.ui;
 
 import dev.momentum.desktop.host.ServiceHost;
 import java.util.List;
+import java.util.Map;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.paint.Color;
@@ -65,10 +66,15 @@ public final class ThemeManager {
     private void restore() {
         try {
             host.settingsGet("theme").ifPresent(json -> {
-                int marker = json.indexOf("\"theme\":\"");
-                if (marker >= 0) {
-                    String id = json.substring(marker + 9, json.indexOf('"', marker + 9));
-                    PRESETS.stream().filter(theme -> theme.id().equals(id)).findFirst().ifPresent(current::set);
+                try {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> cfg = dev.momentum.core.Json.parseObject(json);
+                    Object idObj = cfg.get("theme");
+                    if (idObj instanceof String id) {
+                        PRESETS.stream().filter(theme -> theme.id().equals(id)).findFirst().ifPresent(current::set);
+                    }
+                } catch (Exception ignored) {
+                    // Malformed JSON — keep default theme.
                 }
             });
         } catch (RuntimeException e) {

@@ -80,6 +80,10 @@ public final class ToastHost {
             card.getChildren().add(button);
         }
 
+        // Click to dismiss any toast; especially useful for error toasts
+        // which users may want to acknowledge immediately.
+        card.setOnMouseClicked(event -> dismiss(card));
+
         stack.getChildren().add(card);
         while (stack.getChildren().size() > MAX_VISIBLE) {
             dismissImmediately(stack.getChildren().get(0));

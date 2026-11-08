@@ -203,9 +203,11 @@ public class SettingsController implements PageView {
         Label title = new Label("About this build");
         title.getStyleClass().add("card-title");
         Text info = new Text("""
+            MOMENTUM Desktop v%s
             UI engine: JavaFX (native rendering, no browser, no Chromium, no WebView)
             Data engine: SQLite + the MOMENTUM service layer shared with the HTTP server
-            Framework phase: 4 of the 8-phase JavaFX migration""");
+            Framework phase: 4 of the 8-phase JavaFX migration""".formatted(
+                    dev.momentum.desktop.MomentumApp.VERSION));
         info.getStyleClass().add("mono-text");
         VBox card = new VBox(10, title, info);
         card.getStyleClass().add("card");
