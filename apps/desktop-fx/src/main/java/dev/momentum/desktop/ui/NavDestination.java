@@ -12,8 +12,11 @@ public enum NavDestination {
     ARCHIVE("Archive", "\u2752"),
     TRASH("Trash", "\u2716"),
     SETTINGS("Settings", "\u2699"),
+    CATEGORIES("Categories", "\u25A2"),
     GOAL_DETAIL("Goal detail", "\u25CF"),
-    GOAL_EDIT("Goal editor", "\u25A1");
+    GOAL_EDIT("Goal editor", "\u25A1"),
+    AUTH("Authentication", "\u2709"),
+    ONBOARDING("Onboarding", "\u2728");
 
     public final String title;
     public final String glyph;

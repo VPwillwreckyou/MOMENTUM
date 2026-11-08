@@ -335,6 +335,21 @@ public final class SqliteRepository implements AutoCloseable {
         }
     }
 
+    /** All soft-deleted goals (in the trash), newest first. */
+    public List<Map<String, Object>> listTrashedGoals() throws SQLException {
+        try (PreparedStatement stmt = connection().prepareStatement(
+                "SELECT id, title, description, notes, category_id, status, kind, priority, "
+                        + "start_date, deadline, created_at, updated_at, completed_at, archived_at, deleted_at, "
+                        + "series_id, occurrence, recurrence_json, finance_json, ai_generated "
+                        + "FROM goals WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC")) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<Map<String, Object>> goals = new ArrayList<>();
+                while (rs.next()) goals.add(goalRow(rs));
+                return goals;
+            }
+        }
+    }
+
     /** Number of non-trashed goals in a category. */
     public long goalsInCategory(String categoryId) throws SQLException {
         try (PreparedStatement stmt = connection().prepareStatement(

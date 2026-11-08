@@ -49,6 +49,21 @@ public final class ServiceHost implements AutoCloseable {
     private final MomentumService service;
     private final MigrationManager migrations;
 
+    /** Current desktop session token (set after login/register, cleared on logout). */
+    private volatile String currentToken;
+
+    public String getCurrentToken() {
+        return currentToken;
+    }
+
+    public void setCurrentToken(String currentToken) {
+        this.currentToken = currentToken;
+    }
+
+    public void clearCurrentToken() {
+        this.currentToken = null;
+    }
+
     public ServiceHost(Path dataDirectory) throws IOException {
         this.dataDirectory = dataDirectory.toAbsolutePath().normalize();
         this.accounts = new AccountStore(this.dataDirectory);

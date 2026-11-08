@@ -219,6 +219,7 @@ public class GoalsListController implements PageView {
             card.bind(goal,
                     () -> navigation.select(NavDestination.GOAL_DETAIL, id),
                     () -> navigation.select(NavDestination.GOAL_EDIT, id),
+                    GoalsListController.this::load,
                     GoalsListController.this::load);
             setText(null);
             setGraphic(card.node());

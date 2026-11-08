@@ -39,6 +39,7 @@ public final class GoalCard {
 
     private Map<String, Object> goal;
     private Runnable onChanged;
+    private Runnable onRestore;
 
     public GoalCard(ServiceHost host, ToastHost toasts, ModalOverlay modals) {
         this.host = host;
@@ -80,9 +81,11 @@ public final class GoalCard {
         return row;
     }
 
-    public void bind(Map<String, Object> goal, Runnable onView, Runnable onEdit, Runnable onChanged) {
+    public void bind(Map<String, Object> goal, Runnable onView, Runnable onEdit, Runnable onChanged,
+                     Runnable onRestore) {
         this.goal = goal;
         this.onChanged = onChanged;
+        this.onRestore = onRestore;
         String titleText = valueOr(goal, "title", "Untitled");
         String status = valueOr(goal, "status", "active");
         String category = valueOr(goal, "categoryId", "\u2014");
@@ -97,6 +100,14 @@ public final class GoalCard {
             default          -> statusChip.setStyle("-fx-text-fill: -accent; -fx-background-color: -accent-faint;");
         }
         toggle.setText("completed".equals(status) ? "Reopen" : "Complete");
+        archive.setText("archived".equals(status) ? "Restore" : "Archive");
+        archive.setOnAction(event -> {
+            if ("archived".equals(status)) {
+                restoreGoal();
+            } else {
+                archiveGoal();
+            }
+        });
 
         row.setOnMouseClicked(event -> {
             if (event.getClickCount() == 1 && !(event.getTarget() instanceof Button) && onView != null) {
@@ -129,6 +140,26 @@ public final class GoalCard {
 
     private void runOnChanged() {
         if (onChanged != null) onChanged.run();
+    }
+
+    private void restoreGoal() {
+        if (goal == null) return;
+        String id = String.valueOf(goal.get("id"));
+        try {
+            host.withRepository(repository -> {
+                try {
+                    repository.restoreGoal(id);
+                    repository.recordActivity("goal-restored", id, null, "Restored goal");
+                    return null;
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            toasts.show("Goal restored", ToastHost.Tone.SUCCESS);
+            runOnChanged();
+        } catch (RuntimeException e) {
+            toasts.show("Could not restore goal: " + e.getCause().getMessage(), ToastHost.Tone.ERROR);
+        }
     }
 
     /* ---------------------------------------------------------------- actions */

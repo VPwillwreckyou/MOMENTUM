@@ -1,8 +1,10 @@
 package dev.momentum.desktop;
 
 import dev.momentum.desktop.host.ServiceHost;
+import dev.momentum.desktop.ui.NavDestination;
 import dev.momentum.desktop.ui.ShellController;
 import java.io.IOException;
+import java.util.Map;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -68,6 +70,21 @@ public class MomentumApp extends Application {
             welcome.setOnFinished(event -> activeController.toasts.show(
                     "MOMENTUM desktop shell is running. Database connected.", dev.momentum.desktop.ui.ToastHost.Tone.SUCCESS));
             welcome.play();
+        }
+
+        // Auto-show onboarding on first launch.
+        boolean showOnboarding = true;
+        try {
+            String json = host.settingsGet("onboarding").orElse(null);
+            if (json != null) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> cfg = dev.momentum.core.Json.parseObject(json);
+                showOnboarding = !Boolean.TRUE.equals(cfg.get("complete"));
+            }
+        } catch (Exception ignored) {
+        }
+        if (showOnboarding) {
+            activeController.navigate(NavDestination.ONBOARDING);
         }
     }
 

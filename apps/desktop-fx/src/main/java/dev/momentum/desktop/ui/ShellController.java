@@ -82,7 +82,8 @@ public class ShellController implements Initializable {
                 NavDestination.DASHBOARD, NavDestination.GOALS, NavDestination.TASKS,
                 NavDestination.CALENDAR, NavDestination.AI_PLANNER, NavDestination.FINANCE,
                 NavDestination.ACTIVITY, NavDestination.ARCHIVE, NavDestination.TRASH,
-                NavDestination.SETTINGS)) {
+                NavDestination.CATEGORIES, NavDestination.AUTH,
+                NavDestination.ONBOARDING, NavDestination.SETTINGS)) {
             Button button = NavigationManager.navButton(destination.glyph, destination.title);
             navigation.register(destination, button);
             navBox.getChildren().add(button);

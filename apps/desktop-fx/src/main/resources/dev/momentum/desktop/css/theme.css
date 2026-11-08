@@ -442,6 +442,33 @@
     -fx-background-color: #1b2740;
 }
 
+/* ------------------------------------------------ calendar */
+.calendar-nav { -fx-background-color: transparent; -fx-alignment: center; }
+.calendar-month { -fx-text-fill: #e2e8f0; -fx-font-size: 14px; -fx-font-weight: 600; }
+.calendar-grid { -fx-background-color: transparent; }
+.calendar-weekday { -fx-text-fill: #7a8aa5; -fx-font-size: 11px; -fx-font-weight: 600; -fx-alignment: center; }
+.calendar-day { -fx-background-color: #0b1019; -fx-background-radius: 10; -fx-border-radius: 10; -fx-border-width: 1; -fx-border-color: #1b2740; -fx-padding: 8; -fx-alignment: top-left; }
+.calendar-day-num { -fx-text-fill: #94a3b8; -fx-font-size: 12px; -fx-font-weight: 600; }
+.calendar-event { -fx-text-fill: #22d3ee; -fx-font-size: 11px; -fx-cursor: hand; -fx-padding: 2; }
+.calendar-event:hover { -fx-text-fill: #67e8f9; }
+
+/* ------------------------------------------------ task list (standalone) */
+.task-list-view { -fx-background-color: transparent; }
+.task-list-view .list-cell { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 4 0; }
+.task-row { -fx-background-color: linear-gradient(to bottom, #0c1322, #0a0f1c); -fx-background-radius: 10; -fx-border-radius: 10; -fx-border-width: 1; -fx-border-color: #1b2740; -fx-padding: 10 14; -fx-cursor: default; }
+.task-row:hover { -fx-border-color: #253656; }
+.task-check { -fx-cursor: hand; }
+.task-title { -fx-text-fill: #e2e8f0; -fx-font-size: 13px; -fx-font-weight: 600; }
+.task-meta { -fx-text-fill: #7a8aa5; -fx-font-size: 11px; }
+
+/* ------------------------------------------------ category rows */
+.category-list { -fx-background-color: transparent; }
+.category-list .list-cell { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 4 0; }
+.category-row { -fx-background-color: linear-gradient(to bottom, #0c1322, #0a0f1c); -fx-background-radius: 10; -fx-border-radius: 10; -fx-border-width: 1; -fx-border-color: #1b2740; -fx-padding: 10 14; -fx-cursor: default; }
+.category-row:hover { -fx-border-color: #253656; }
+.color-dot { -fx-text-fill: #22d3ee; -fx-font-size: 12px; -fx-min-width: 16; -fx-alignment: center; }
+.category-name { -fx-text-fill: #e2e8f0; -fx-font-size: 13px; -fx-font-weight: 600; }
+
 /* ------------------------------------------------ goal list rows */
 .goal-list { -fx-background-color: transparent; }
 .goal-list .list-cell { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 6 0 4 0; }

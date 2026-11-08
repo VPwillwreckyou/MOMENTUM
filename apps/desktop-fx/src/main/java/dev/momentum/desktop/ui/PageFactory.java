@@ -4,11 +4,9 @@ import dev.momentum.desktop.host.ServiceHost;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.text.Text;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import java.util.EnumMap;
@@ -48,91 +46,18 @@ public final class PageFactory {
     private PageView create(NavDestination destination) {
         return switch (destination) {
             case DASHBOARD -> new DashboardController(host, themes, toasts, modals, navigation);
-            case SETTINGS -> settings();
+            case SETTINGS -> new SettingsController(host, themes, toasts, modals);
             case GOALS -> new GoalsListController(host, themes, toasts, modals, navigation);
+            case CATEGORIES -> new CategoriesController(host, toasts, modals, navigation);
+            case TASKS -> new TasksController(host, toasts, modals, navigation);
+            case CALENDAR -> new CalendarController(host, toasts, modals, navigation);
+            case ARCHIVE -> new ArchiveController(host, toasts, modals, navigation);
+            case TRASH -> new TrashController(host, toasts, modals, navigation);
+            case AUTH -> new AuthController(host, toasts);
+            case ONBOARDING -> new OnboardingController(host, toasts, navigation);
             case GOAL_DETAIL -> new GoalDetailController(host, themes, toasts, modals, navigation);
             case GOAL_EDIT -> new GoalEditorController(host, themes, toasts, modals, navigation);
             default -> heroPage(destination);
-        };
-    }
-
-    /** Wraps the inline settings builder as a page until Settings gets its own controller. */
-    private PageView settings() {
-        VBox root = pageRoot();
-        // Theme picker
-        Label themeTitle = new Label("Color theme");
-        themeTitle.getStyleClass().add("card-title");
-        Label themeSub = new Label("Applies instantly. Stored in your local SQLite database.");
-        themeSub.getStyleClass().add("hero-sub");
-
-        FlowPane swatches = new FlowPane(12, 12);
-        for (ThemeManager.Theme theme : ThemeManager.PRESETS) {
-            Button swatch = new Button(theme.name());
-            swatch.getStyleClass().add("swatch");
-            swatch.setStyle("-swatch-accent:" + theme.accent() + ";");
-            if (themes.current().id().equals(theme.id())) {
-                swatch.getStyleClass().add("selected");
-            }
-            swatch.setOnAction(event -> {
-                themes.apply(theme);
-                toasts.show(theme.name() + " theme applied.", ToastHost.Tone.SUCCESS);
-                for (Node node : swatches.getChildren()) {
-                    boolean active = node == swatch;
-                    node.getStyleClass().remove("selected");
-                    if (active) node.getStyleClass().add("selected");
-                }
-            });
-            swatches.getChildren().add(swatch);
-        }
-        VBox themeCard = card("theme-card", themeTitle, themeSub, swatches);
-
-        // Storage status
-        Label storageTitle = new Label("Local storage");
-        storageTitle.getStyleClass().add("card-title");
-        try {
-            var status = host.migrations().status();
-            Text dataPath = new Text("Data directory: " + status.get("dataDirectory"));
-            Text integrity = new Text("Database integrity: " + status.get("integrityCheck")
-                    + " / foreign key violations: " + status.get("foreignKeyViolations"));
-            Text migrated = new Text("Last migration: " + (status.get("migratedFrom") == null
-                    ? "not yet imported (fresh database)"
-                    : status.get("migratedFrom") + " on " + status.get("migrationDate")));
-            dataPath.getStyleClass().add("mono-text");
-            integrity.getStyleClass().add("mono-text");
-            migrated.getStyleClass().add("mono-text");
-            VBox storageCard = card("storage-card", storageTitle, dataPath, integrity, migrated);
-            root.getChildren().addAll(themeCard, storageCard);
-        } catch (java.io.IOException e) {
-            root.getChildren().add(themeCard);
-        }
-
-        // App info
-        Label aboutTitle = new Label("About this build");
-        aboutTitle.getStyleClass().add("card-title");
-        Text infoLines = new Text("""
-            UI engine: JavaFX (native rendering, no browser, no Chromium, no WebView)
-            Data engine: SQLite + the MOMENTUM service layer shared with the HTTP server
-            Framework phase: 3 of the 8-phase JavaFX migration""");
-        infoLines.getStyleClass().add("mono-text");
-
-        Button demoModalButton = new Button("Open a test modal");
-        demoModalButton.getStyleClass().addAll("btn", "btn-primary");
-        demoModalButton.setOnAction(event -> modals.show(
-                "Framework diagnostic",
-                new Label("Modals, toasts, navigation and themes are all wired up.\nScreens arrive from Phase 4 onward."),
-                new ModalOverlay.Action("Got it", ModalOverlay.Tone.PRIMARY, modals::hide)));
-
-        Button demoToastButton = new Button("Show toast");
-        demoToastButton.getStyleClass().addAll("btn", "btn-ghost");
-        demoToastButton.setOnAction(event -> toasts.show("Toast system operational.", ToastHost.Tone.INFO));
-
-        HBox demoRow = new HBox(10, demoModalButton, demoToastButton);
-        VBox aboutCard = card("about-card", aboutTitle, infoLines, demoRow);
-        root.getChildren().add(aboutCard);
-        return new PageView() {
-            private final ScrollPane scroll = wrapScroll(root);
-            @Override public Node root() { return scroll; }
-            @Override public void onShown(Object parameter) {}
         };
     }
 
