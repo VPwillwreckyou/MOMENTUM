@@ -91,6 +91,12 @@ public class MomentumApp extends Application {
     @Override
     public void stop() {
         if (host != null) {
+            try {
+                host.checkpointWAL();
+            } catch (Exception e) {
+                System.err.println("MOMENTUM: WAL checkpoint on shutdown failed: "
+                        + e.getMessage());
+            }
             host.close();
         }
     }

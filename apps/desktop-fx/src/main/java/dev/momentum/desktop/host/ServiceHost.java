@@ -195,6 +195,21 @@ public final class ServiceHost implements AutoCloseable {
         });
     }
 
+    /**
+     * Checkpoints the SQLite WAL so all committed transactions are flushed
+     * into the main database file. Call this before application shutdown to
+     * ensure the standalone .db file is complete and can be copied or backed
+     * up safely.
+     */
+    public void checkpointWAL() {
+        try (Database database = new Database(dataDirectory.toString());
+             java.sql.Statement stmt = database.connection().createStatement()) {
+            stmt.execute("PRAGMA wal_checkpoint(TRUNCATE)");
+        } catch (SQLException e) {
+            throw new IllegalStateException("Could not checkpoint WAL on shutdown", e);
+        }
+    }
+
     @Override
     public void close() {
         // Stateless; MigrationManager keeps no live connection.
