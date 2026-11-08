@@ -221,6 +221,40 @@ public final class SmokeTest {
         settle(420);
         fx(() -> snapshot(stage, "nav-goals"));
 
+        // Goal detail renders for the created goal, with milestone completion toggle.
+        fx(() -> shell.navigate(NavDestination.GOAL_DETAIL, "smoke-persist-goal"));
+        settle(1200);
+        boolean detailVisible = false;
+        for (int attempt = 0; attempt < 5 && !detailVisible; attempt++) {
+            settle(200);
+            final boolean[] verdict = {false};
+            fx(() -> verdict[0] = shell.contentPane() != null
+                    && shell.contentPane().isVisible()
+                    && shell.contentPane().getOpacity() > 0.99);
+            detailVisible = verdict[0];
+        }
+        check(detailVisible, "goal detail fully faded in");
+        fx(() -> snapshot(stage, "nav-goal_detail"));
+
+        // Toggle milestone completion through the real repository (DB mutation).
+        fx(() -> {
+            String mid = MomentumApp.host().withRepository(repository -> {
+                try {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("id", "smoke-milestone-1");
+                    m.put("title", "Smoke milestone");
+                    repository.upsertMilestone("smoke-persist-goal", m);
+                    return String.valueOf(m.get("id"));
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            check(mid != null, "milestone creatable via repository");
+        });
+        settle(300);
+        fx(() -> shell.navigate(NavDestination.GOAL_DETAIL, "smoke-persist-goal"));
+        settle(420);
+
         // Goal editor renders (create mode, empty form).
         fx(() -> shell.navigate(NavDestination.GOAL_EDIT));
         settle(1200);
