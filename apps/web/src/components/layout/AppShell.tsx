@@ -7,12 +7,34 @@ import { AppShellContext } from './AppShellContext';
 import { GoalForm } from '../goals/GoalForm';
 import { CommandPalette } from '../search/CommandPalette';
 import { Toasts } from '../ui/Toasts';
+import { useMomentum } from '../../state/MomentumContext';
+import { checkDeadlineNotifications } from '../../lib/notifications';
+import { useInstallPrompt } from '../../lib/useInstallPrompt';
 
 export function AppShell() {
   const [goalFormOpen, setGoalFormOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { workspace } = useMomentum();
+  const { canInstall, promptInstall, dismiss: dismissInstall } = useInstallPrompt();
+
+  // Deadline notifications
+  useEffect(() => {
+    const allTasks = workspace.goals.flatMap((g) => g.tasks ?? []);
+    checkDeadlineNotifications(workspace.goals, allTasks);
+    const interval = window.setInterval(() => {
+      checkDeadlineNotifications(workspace.goals, allTasks);
+    }, 60 * 60 * 1000);
+    return () => window.clearInterval(interval);
+  }, [workspace.goals]);
+
+  // PWA install prompt (auto-dismiss after 30s)
+  useEffect(() => {
+    if (!canInstall) return;
+    const timer = window.setTimeout(() => dismissInstall(), 30000);
+    return () => window.clearTimeout(timer);
+  }, [canInstall, dismissInstall]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
@@ -82,6 +104,17 @@ export function AppShell() {
         onNewGoal={() => setGoalFormOpen(true)}
       />
       <Toasts />
+      {canInstall ? (
+        <div className="install-banner" role="status">
+          <span>Install MOMENTUM for offline access and faster launch.</span>
+          <button type="button" className="btn btn--primary btn--sm" onClick={() => void promptInstall()}>
+            Install
+          </button>
+          <button type="button" className="btn btn--ghost btn--sm" onClick={dismissInstall} aria-label="Dismiss install prompt">
+            ×
+          </button>
+        </div>
+      ) : null}
     </AppShellContext.Provider>
   );
 }

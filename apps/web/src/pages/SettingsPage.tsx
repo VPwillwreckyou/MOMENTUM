@@ -33,6 +33,7 @@ import { Input, SegmentedControl, Toggle } from '../components/ui/Fields';
 import { ConfirmDialog, Modal } from '../components/ui/Modal';
 import { ACCENT_PRESETS, AI_PROVIDER_LOCK, PROVIDER_DEFAULTS } from '../lib/defaults';
 import { normalizeSettings, normalizeWorkspace } from '../lib/repository';
+import { exportGoalsToCsv, exportTasksToCsv, exportMilestonesToCsv } from '../lib/csv';
 import { resolvedApiBase, setApiUrlOverride } from '../lib/api';
 import { encryptSecret } from '../lib/vault';
 import { validateHex } from '../lib/validation';
@@ -742,6 +743,24 @@ export function SettingsPage() {
                 <Button variant="secondary" size="sm" onClick={() => void exportGoalBackup()}>
                   Export JSON
                 </Button>
+              </div>
+              <div className="data-action">
+                <span className="data-action__icon"><Download size={16} /></span>
+                <div>
+                  <strong>Export to CSV</strong>
+                  <p>Goals, tasks and milestones as spreadsheet-friendly CSV files for analysis in Excel or Google Sheets.</p>
+                </div>
+                <div className="data-action__buttons">
+                  <Button variant="secondary" size="sm" onClick={() => exportGoalsToCsv(workspace.goals, workspace.categories)}>
+                    Goals
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => exportTasksToCsv(workspace.goals.flatMap((g: any) => g.tasks ?? []), workspace.goals)}>
+                    Tasks
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => exportMilestonesToCsv(workspace.goals.flatMap((g: any) => g.milestones ?? []))}>
+                    Milestones
+                  </Button>
+                </div>
               </div>
               <div className="data-action">
                 <span className="data-action__icon"><Upload size={16} /></span>

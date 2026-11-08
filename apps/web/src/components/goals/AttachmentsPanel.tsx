@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react';
-import { Download, File, Paperclip, Trash2 } from 'lucide-react';
+import { Download, Eye, File, Paperclip, Trash2 } from 'lucide-react';
 import type { AttachmentMeta } from '../../state/types';
 import { useMomentum } from '../../state/MomentumContext';
 import { getAttachmentBlob } from '../../lib/db';
 import { Button, IconButton } from '../ui/Button';
-import { ConfirmDialog } from '../ui/Modal';
+import { ConfirmDialog, Modal } from '../ui/Modal';
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -17,6 +17,7 @@ export function AttachmentsPanel({ goalId, readOnly = false }: { goalId: string;
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [deleting, setDeleting] = useState<AttachmentMeta | null>(null);
+  const [previewing, setPreviewing] = useState<{ attachment: AttachmentMeta; url: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const own = attachments.filter((attachment) => attachment.goalId === goalId);
 
@@ -47,6 +48,24 @@ export function AttachmentsPanel({ goalId, readOnly = false }: { goalId: string;
     window.setTimeout(() => URL.revokeObjectURL(url), 2000);
   };
 
+  const preview = async (attachment: AttachmentMeta) => {
+    const blob = await getAttachmentBlob(attachment.id);
+    if (!blob) {
+      toast('This attachment is no longer available.', 'error');
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    setPreviewing({ attachment, url });
+  };
+
+  const closePreview = () => {
+    if (previewing?.url) URL.revokeObjectURL(previewing.url);
+    setPreviewing(null);
+  };
+
+  const isPreviewable = (attachment: AttachmentMeta) =>
+    attachment.mimeType.startsWith('image/') || attachment.mimeType === 'application/pdf';
+
   return (
     <section className="side-panel" id="attachments">
       <div className="side-panel__header">
@@ -68,6 +87,11 @@ export function AttachmentsPanel({ goalId, readOnly = false }: { goalId: string;
                 <span className="truncate">{attachment.name}</span>
                 <span>{formatSize(attachment.size)}</span>
               </button>
+              {isPreviewable(attachment) ? (
+                <IconButton label={`Preview ${attachment.name}`} size="sm" onClick={() => void preview(attachment)}>
+                  <Eye size={14} />
+                </IconButton>
+              ) : null}
               <IconButton label={`Download ${attachment.name}`} size="sm" onClick={() => void download(attachment)}>
                 <Download size={14} />
               </IconButton>
@@ -126,6 +150,26 @@ export function AttachmentsPanel({ goalId, readOnly = false }: { goalId: string;
         confirmLabel="Delete file"
         description={`“${deleting?.name ?? 'This file'}” will be removed from this device immediately.`}
       />
+
+      <Modal open={Boolean(previewing)} onClose={closePreview} title={previewing?.attachment.name ?? 'Preview'} size="lg">
+        {previewing ? (
+          previewing.attachment.mimeType.startsWith('image/') ? (
+            <img
+              src={previewing.url}
+              alt={previewing.attachment.name}
+              style={{ maxWidth: '100%', maxHeight: '70vh', display: 'block', margin: '0 auto' }}
+            />
+          ) : previewing.attachment.mimeType === 'application/pdf' ? (
+            <iframe
+              src={previewing.url}
+              title={previewing.attachment.name}
+              style={{ width: '100%', height: '70vh', border: 'none' }}
+            />
+          ) : (
+            <p>Preview not available for this file type.</p>
+          )
+        ) : null}
+      </Modal>
     </section>
   );
 }

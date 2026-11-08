@@ -779,6 +779,12 @@
   line-height: 1.4;
 }
 
+.data-action__buttons {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+
 .data-action--danger .data-action__icon {
   background: var(--danger-soft);
   color: var(--danger);
