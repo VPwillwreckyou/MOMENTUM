@@ -59,6 +59,7 @@ public final class MomentumServer {
         thread.setDaemon(true);
         return thread;
     });
+    private final MomentumService service;
     private int port;
     private String publicBase;
     private String appUrl;
@@ -75,6 +76,7 @@ public final class MomentumServer {
         this.appUrl = oauth.appUrl();
         this.sync = new SyncStore(dataDirectory);
         this.ai = new AiProxy();
+        this.service = new MomentumService(accounts, oauth, sync, ai, publicBase, appUrl, secureCookies, allowLocalAiKey);
         this.staticFiles = new StaticFiles(webRoot, secureCookies);
         this.allowedOrigins = buildAllowedOrigins();
         String host = env("MOMENTUM_HOST", "127.0.0.1");
@@ -111,8 +113,17 @@ public final class MomentumServer {
         }
     }
 
+    public static String version() {
+        return VERSION;
+    }
+
     public int port() {
         return port;
+    }
+
+    /** Exposes the service layer for direct use by non-HTTP clients (e.g. JavaFX desktop app). */
+    public MomentumService service() {
+        return service;
     }
 
     public void stop() {
@@ -185,24 +196,19 @@ public final class MomentumServer {
     private void route(HttpExchange exchange, String path) throws IOException {
         if (path.equals("/api/health")) {
             requireMethod(exchange, "GET");
-            Map<String, Object> health = new LinkedHashMap<>();
-            health.put("status", "ok");
-            health.put("version", VERSION);
-            health.put("time", Instant.now().toString());
-            health.put("aiProviders", List.of("deepseek", "openai", "gemini", "groq", "ollama", "custom"));
-            HttpUtil.sendJson(exchange, 200, health);
+            HttpUtil.sendJson(exchange, 200, service.health());
             return;
         }
         if (path.equals("/api/auth/providers")) {
             requireMethod(exchange, "GET");
-            HttpUtil.sendJson(exchange, 200, Map.of("providers", oauth.providerStatuses()));
+            HttpUtil.sendJson(exchange, 200, Map.of("providers", service.oauthProviders()));
             return;
         }
         if (path.equals("/api/auth/register")) {
             requireMethod(exchange, "POST");
             requireRate(authLimiter, exchange, "auth");
             Map<String, Object> body = HttpUtil.readObject(exchange, MAX_AUTH_BODY);
-            AccountStore.AuthResult result = accounts.register(
+            AccountStore.AuthResult result = service.register(
                     string(body.get("email")), string(body.get("password")), string(body.get("name")));
             setSessionCookie(exchange, result);
             HttpUtil.sendJson(exchange, 201, Map.of("user", AccountStore.view(result.user())));
@@ -212,21 +218,21 @@ public final class MomentumServer {
             requireMethod(exchange, "POST");
             requireRate(authLimiter, exchange, "auth");
             Map<String, Object> body = HttpUtil.readObject(exchange, MAX_AUTH_BODY);
-            AccountStore.AuthResult result = accounts.login(string(body.get("email")), string(body.get("password")));
+            AccountStore.AuthResult result = service.login(string(body.get("email")), string(body.get("password")));
             setSessionCookie(exchange, result);
             HttpUtil.sendJson(exchange, 200, Map.of("user", AccountStore.view(result.user())));
             return;
         }
         if (path.equals("/api/auth/logout")) {
             requireMethod(exchange, "POST");
-            accounts.logout(HttpUtil.sessionToken(exchange));
+            service.logout(HttpUtil.sessionToken(exchange));
             clearSessionCookie(exchange);
             HttpUtil.sendJson(exchange, 200, Map.of("ok", true));
             return;
         }
         if (path.equals("/api/auth/me")) {
             requireMethod(exchange, "GET");
-            Optional<AccountStore.User> user = currentUser(exchange);
+            Optional<AccountStore.User> user = service.currentUser(HttpUtil.sessionToken(exchange));
             if (user.isEmpty()) {
                 HttpUtil.sendError(exchange, 401, "Not signed in.");
                 return;
@@ -274,7 +280,7 @@ public final class MomentumServer {
         if (!callback) {
             requireMethod(exchange, "GET");
             try {
-                String url = oauth.authorizationUrl(provider);
+                String url = service.oauthAuthorizationUrl(provider);
                 HttpUtil.redirect(exchange, url);
             } catch (OAuthService.OAuthException exception) {
                 HttpUtil.sendError(exchange, 503, exception.getMessage());
@@ -302,7 +308,7 @@ public final class MomentumServer {
             return;
         }
         try {
-            AccountStore.AuthResult result = oauth.finish(provider, params);
+            AccountStore.AuthResult result = service.oauthFinish(provider, params);
             setSessionCookie(exchange, result);
             HttpUtil.redirect(exchange, appendQuery(appUrl, "auth", "success", "provider", provider));
         } catch (OAuthService.OAuthException | AccountStore.AuthException exception) {
@@ -311,21 +317,16 @@ public final class MomentumServer {
     }
 
     private void handleDeleteAccount(HttpExchange exchange) throws IOException {
-        AccountStore.User user = requireUser(exchange);
+        requireMethod(exchange, "POST");
+        String token = HttpUtil.sessionToken(exchange);
         Map<String, Object> body;
         try {
             body = HttpUtil.readObject(exchange, 32 * 1024);
         } catch (HttpUtil.BadRequestException exception) {
             body = Map.of();
         }
-        if (user.passwordHash() != null) {
-            String password = string(body.get("password"));
-            if (password == null || !PasswordHasher.verify(password, user.passwordHash())) {
-                throw new AccountStore.AuthException("Password is required to delete this account.", 401);
-            }
-        }
-        sync.delete(user.id());
-        accounts.deleteUser(user.id());
+        String password = string(body.get("password"));
+        service.deleteAccount(token, password);
         clearSessionCookie(exchange);
         HttpUtil.sendJson(exchange, 200, Map.of("ok", true));
     }
@@ -334,7 +335,7 @@ public final class MomentumServer {
         AccountStore.User user = requireUser(exchange);
         requireRate(syncLimiter, exchange, "sync");
         if (HttpUtil.methodIs(exchange, "GET")) {
-            Optional<SyncStore.Snapshot> snapshot = sync.get(user.id());
+            Optional<SyncStore.Snapshot> snapshot = service.syncGet(HttpUtil.sessionToken(exchange));
             if (snapshot.isEmpty()) {
                 Map<String, Object> empty = new LinkedHashMap<>();
                 empty.put("envelope", null);
@@ -356,7 +357,7 @@ public final class MomentumServer {
             Object revisionValue = body.get("baseRevision");
             long baseRevision = revisionValue instanceof Number number ? number.longValue() : -1;
             if (baseRevision < 0) throw new IllegalArgumentException("baseRevision is required.");
-            SyncStore.Snapshot snapshot = sync.put(user.id(), envelope, baseRevision);
+            SyncStore.Snapshot snapshot = service.syncPut(HttpUtil.sessionToken(exchange), envelope, baseRevision);
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("revision", snapshot.revision());
             response.put("updatedAt", snapshot.updatedAt());
@@ -364,7 +365,7 @@ public final class MomentumServer {
             return;
         }
         if (HttpUtil.methodIs(exchange, "DELETE")) {
-            sync.delete(user.id());
+            service.syncDelete(HttpUtil.sessionToken(exchange));
             HttpUtil.sendJson(exchange, 200, Map.of("ok", true));
             return;
         }
@@ -393,9 +394,9 @@ public final class MomentumServer {
             message.put("content", content);
             messages.add(message);
         }
-        boolean serverKeyAllowed = currentUser(exchange).isPresent()
-                || (allowLocalAiKey && HttpUtil.isLoopback(exchange));
-        AiProxy.ChatResponse response = ai.chat(
+        boolean serverKeyAllowed = service.currentUser(HttpUtil.sessionToken(exchange)).isPresent()
+                || (service.allowLocalAiKey() && HttpUtil.isLoopback(exchange));
+        AiProxy.ChatResponse response = service.aiChat(
                 new AiProxy.ChatRequest(provider, apiKey, model, baseUrl, messages, json), serverKeyAllowed);
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("text", response.text());
@@ -406,7 +407,7 @@ public final class MomentumServer {
     }
 
     private Optional<AccountStore.User> currentUser(HttpExchange exchange) {
-        return accounts.sessionUser(HttpUtil.sessionToken(exchange));
+        return service.currentUser(HttpUtil.sessionToken(exchange));
     }
 
     private AccountStore.User requireUser(HttpExchange exchange) {
@@ -490,7 +491,7 @@ public final class MomentumServer {
 
     private String configuredProviders() {
         List<String> configured = new ArrayList<>();
-        for (Map<String, Object> provider : oauth.providerStatuses()) {
+        for (Map<String, Object> provider : service.oauthProviders()) {
             if (Boolean.TRUE.equals(provider.get("configured"))) configured.add(String.valueOf(provider.get("label")));
         }
         return configured.isEmpty() ? "email/password only" : String.join(", ", configured);

@@ -306,8 +306,10 @@ Each screen needs:
 | Phase 3: JavaFX framework | 1 week | Gradle, FXML, CSS theme, navigation, modals |
 | Phase 4: Core screens | 3-4 weeks | 10 screens with full functionality |
 | Phase 5: Feature parity | 2-3 weeks | AI, OAuth, sync, attachments, PDF/CSV, notifications |
-| Phase 6: Packaging | 1 week | jpackage, testing, release |
-| **Total** | **8-13 weeks** | Full-time equivalent |
+| Phase 6: Testing and QA | 1-2 weeks | Unit tests, integration tests, manual testing |
+| Phase 7: Packaging | 1 week | jpackage, testing, release |
+| Phase 8: Distribution | 1 week | GitHub Release, documentation, user guides |
+| **Total** | **10-16 weeks** | Full-time equivalent |
 
 ---
 
