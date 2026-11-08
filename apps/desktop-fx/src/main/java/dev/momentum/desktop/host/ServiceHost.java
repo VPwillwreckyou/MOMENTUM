@@ -3,14 +3,18 @@ package dev.momentum.desktop.host;
 import dev.momentum.ai.AiProxy;
 import dev.momentum.auth.AccountStore;
 import dev.momentum.auth.OAuthService;
+import dev.momentum.core.Json;
 import dev.momentum.data.MigrationManager;
 import dev.momentum.data.SqliteRepository;
 import dev.momentum.data.Database;
+import dev.momentum.desktop.security.EncryptionService;
+import dev.momentum.desktop.security.EncryptionServiceProvider;
 import dev.momentum.sync.SyncStore;
 import dev.momentum.MomentumService;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -52,6 +56,9 @@ public final class ServiceHost implements AutoCloseable {
     /** Current desktop session token (set after login/register, cleared on logout). */
     private volatile String currentToken;
 
+    /** Device-bound encryption service for sensitive settings values. */
+    private final EncryptionService encryptionService;
+
     public String getCurrentToken() {
         return currentToken;
     }
@@ -64,12 +71,18 @@ public final class ServiceHost implements AutoCloseable {
         this.currentToken = null;
     }
 
+    /** Returns the encryption service used for sensitive settings values. */
+    public EncryptionService encryptionService() {
+        return encryptionService;
+    }
+
     public ServiceHost(Path dataDirectory) throws IOException {
         this.dataDirectory = dataDirectory.toAbsolutePath().normalize();
         this.accounts = new AccountStore(this.dataDirectory);
         this.oauth = new OAuthService(accounts);
         this.sync = new SyncStore(this.dataDirectory);
         this.ai = new AiProxy();
+        this.encryptionService = EncryptionServiceProvider.get();
         // Same configuration the HTTP server passes: desktop runs the service headlessly.
         this.service = new MomentumService(
                 accounts, oauth, sync, ai,
@@ -130,6 +143,56 @@ public final class ServiceHost implements AutoCloseable {
         } catch (SQLException e) {
             return false;
         }
+    }
+
+    /**
+     * Stores a JSON settings value with one sensitive field encrypted using
+     * the device-bound encryption service. The sensitive field is encrypted
+     * before the JSON is persisted, so the raw value never touches disk.
+     *
+     * @param key          the settings key
+     * @param jsonValue    the full JSON value as a string
+     * @param sensitiveField the JSON field name whose value should be encrypted
+     */
+    public boolean settingsPutEncrypted(String key, String jsonValue, String sensitiveField) {
+        try {
+            Map<String, Object> cfg = Json.parseObject(jsonValue);
+            Object sensitiveValue = cfg.get(sensitiveField);
+            if (sensitiveValue != null && !String.valueOf(sensitiveValue).isEmpty()) {
+                String encrypted = encryptionService.encrypt(String.valueOf(sensitiveValue));
+                cfg.put(sensitiveField, encrypted);
+            }
+            return settingsPut(key, Json.stringify(cfg));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Reads a JSON settings value with one sensitive field decrypted using the
+     * device-bound encryption service. If the field cannot be decrypted (e.g.
+     * the database was copied to another machine), the raw stored value is
+     * returned unchanged so the caller can decide how to handle it.
+     *
+     * @param key          the settings key
+     * @param sensitiveField the JSON field name whose value should be decrypted
+     * @return the decrypted JSON value, or empty if no row exists
+     */
+    public Optional<String> settingsGetDecrypted(String key, String sensitiveField) {
+        return settingsGet(key).map(jsonValue -> {
+            try {
+                Map<String, Object> cfg = Json.parseObject(jsonValue);
+                Object sensitiveValue = cfg.get(sensitiveField);
+                if (sensitiveValue != null && !String.valueOf(sensitiveValue).isEmpty()) {
+                    String decrypted = encryptionService.decrypt(String.valueOf(sensitiveValue));
+                    cfg.put(sensitiveField, decrypted);
+                }
+                return Json.stringify(cfg);
+            } catch (Exception e) {
+                // If decryption fails (e.g. wrong machine), return raw value
+                return jsonValue;
+            }
+        });
     }
 
     @Override

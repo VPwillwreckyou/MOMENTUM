@@ -320,12 +320,52 @@ public class SettingsController implements PageView {
         String model = aiModel.getText();
         String baseUrl = aiBaseUrl.getText();
         String key = aiApiKey.getText();
+
+        // If the key field is empty, try to use the stored (decrypted) key so
+        // that changing only the model or base URL does not lose the key.
+        if (key == null || key.isBlank()) {
+            String storedJson = host.settingsGetDecrypted("ai_config", "apiKey")
+                .orElse(null);
+            if (storedJson != null) {
+                try {
+                    Map<String, Object> storedCfg = dev.momentum.core.Json.parseObject(storedJson);
+                    key = String.valueOf(storedCfg.getOrDefault("apiKey", ""));
+                    if (provider == null || provider.isBlank()) {
+                        provider = String.valueOf(storedCfg.getOrDefault("provider", "groq"));
+                        aiProvider.setValue(provider);
+                    }
+                    if (model == null || model.isBlank()) {
+                        model = String.valueOf(storedCfg.getOrDefault("model", ""));
+                        aiModel.setText(model);
+                    }
+                    if (baseUrl == null || baseUrl.isBlank()) {
+                        baseUrl = String.valueOf(storedCfg.getOrDefault("baseUrl", ""));
+                        aiBaseUrl.setText(baseUrl);
+                    }
+                } catch (Exception ignored) {
+                    // Ignore parse errors; key remains blank
+                }
+            }
+        }
+
+        if (key == null || key.isBlank()) {
+            aiStatus.setText("Please enter an API key");
+            aiTest.setDisable(false);
+            return;
+        }
+
+        // Effectively-final copies for use inside the background task
+        final String finalProvider = provider;
+        final String finalModel = model;
+        final String finalBaseUrl = baseUrl;
+        final String finalKey = key;
+
         Map<String, Object> cfg = new LinkedHashMap<>();
-        cfg.put("provider", provider);
-        cfg.put("model", model);
-        cfg.put("baseUrl", baseUrl);
-        cfg.put("apiKey", key);
-        cfg.put("hasKey", key != null && !key.isBlank());
+        cfg.put("provider", finalProvider);
+        cfg.put("model", finalModel);
+        cfg.put("baseUrl", finalBaseUrl);
+        cfg.put("apiKey", finalKey);
+        cfg.put("hasKey", finalKey != null && !finalKey.isBlank());
 
         aiTest.setDisable(true);
         aiStatus.setText("Testing\u2026");
@@ -334,7 +374,7 @@ public class SettingsController implements PageView {
             protected Void call() throws Exception {
                 dev.momentum.ai.AiProxy.ChatResponse resp = host.service().aiChat(
                         new dev.momentum.ai.AiProxy.ChatRequest(
-                                provider, key, model, baseUrl,
+                                finalProvider, finalKey, finalModel, finalBaseUrl,
                                 List.of(Map.of("role", "user", "content", "Say 'connection ok'.")),
                                 false),
                         false);
@@ -344,7 +384,8 @@ public class SettingsController implements PageView {
         task.setOnSucceeded(event -> Platform.runLater(() -> {
             aiTest.setDisable(false);
             aiStatus.setText("AI OK: " + task.getValue());
-            saveSetting("ai_config", cfg);
+            // Encrypt the API key before persisting
+            host.settingsPutEncrypted("ai_config", dev.momentum.core.Json.stringify(cfg), "apiKey");
             toasts.show("AI connection tested.", ToastHost.Tone.SUCCESS);
         }));
         task.setOnFailed(event -> Platform.runLater(() -> {
