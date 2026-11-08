@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -44,8 +46,15 @@ public final class BackupManager {
         Files.createDirectories(backupsDirectory);
         String name = "momentum-" + TIMESTAMP.format(Instant.now()) + ".db";
         Path target = backupsDirectory.resolve(name);
-        // Copy checkpointed pages: the SQLite -wal file is flushed by copying with an open connection
-        // handled by the caller; a plain file copy here is acceptable as WAL is checkpointed on close.
+        // Checkpoint the WAL before copying so all committed transactions are flushed into the
+        // main database file. A plain file copy of a WAL-mode database can miss transactions
+        // that are still in the -wal file at copy time.
+        try (Database database = new Database(dataDirectory.toString());
+             Statement stmt = database.connection().createStatement()) {
+            stmt.execute("PRAGMA wal_checkpoint(TRUNCATE)");
+        } catch (SQLException e) {
+            throw new IOException("Could not checkpoint database before backup", e);
+        }
         Files.copy(databaseFile, target, StandardCopyOption.REPLACE_EXISTING);
         prune();
         return name;
