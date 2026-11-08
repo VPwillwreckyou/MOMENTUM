@@ -258,15 +258,55 @@ public class GoalEditorController implements PageView {
             title.requestFocus();
             return;
         }
+        if (titleText.length() > 200) {
+            error.setText("Title must be 200 characters or fewer.");
+            error.setVisible(true);
+            title.requestFocus();
+            return;
+        }
+
+        String categoryId = category.getValue() == null ? null : String.valueOf(category.getValue().get("id"));
+        if (categoryId != null) {
+            // Verify the category exists
+            boolean categoryExists = host.withRepository(repository -> {
+                try {
+                    return repository.getCategory(categoryId) != null;
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            if (!categoryExists) {
+                error.setText("Selected category no longer exists.");
+                error.setVisible(true);
+                category.requestFocus();
+                return;
+            }
+        }
+
+        String priorityVal = priority.getValue();
+        if (priorityVal == null || !List.of("low", "medium", "high", "critical").contains(priorityVal)) {
+            error.setText("Invalid priority selected.");
+            error.setVisible(true);
+            priority.requestFocus();
+            return;
+        }
+
+        String kindVal = kind.getValue();
+        if (kindVal == null || !List.of("one-time", "recurring").contains(kindVal)) {
+            error.setText("Invalid goal kind selected.");
+            error.setVisible(true);
+            kind.requestFocus();
+            return;
+        }
 
         Map<String, Object> g = new LinkedHashMap<>(goal.get() == null ? newGoalMap() : goal.get());
         boolean creating = g.get("id") == null;
         g.put("title", titleText);
         g.put("description", description.getText());
         g.put("notes", notes.getText());
-        g.put("categoryId", category.getValue() == null ? null : String.valueOf(category.getValue().get("id")));
-        g.put("priority", priority.getValue());
-        g.put("kind", kind.getValue());
+        g.put("categoryId", categoryId);
+        g.put("priority", priorityVal);
+        g.put("kind", kindVal);
         g.put("startDate", startDate.getValue() == null ? null : startDate.getValue().toString());
         g.put("deadline", deadline.getValue() == null ? null : deadline.getValue().toString());
         g.put("updatedAt", Instant.now().toString());

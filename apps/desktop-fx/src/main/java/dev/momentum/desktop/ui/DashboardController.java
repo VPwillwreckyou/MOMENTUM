@@ -392,22 +392,30 @@ public class DashboardController implements PageView {
         File file = chooser.showOpenDialog(owner);
         if (file == null) return;
 
-        Task<Void> task = new Task<>() {
-            @Override
-            protected Void call() throws Exception {
-                String json = new String(java.nio.file.Files.readAllBytes(file.toPath()),
-                        java.nio.charset.StandardCharsets.UTF_8);
-                host.migrations().importBackupJson(json);
-                return null;
-            }
-        };
-        task.setOnSucceeded(event -> Platform.runLater(() -> {
-            toasts.show("Backup imported", ToastHost.Tone.SUCCESS);
-            refresh();
-            navigation.select(NavDestination.DASHBOARD);
-        }));
-        task.setOnFailed(event -> Platform.runLater(() ->
-                toasts.show("Import failed: " + task.getException().getCause().getMessage(), ToastHost.Tone.ERROR)));
-        new Thread(task, "backup-importer").start();
+        modals.show("Import backup?",
+                new Label("Importing a backup will replace your entire local database "
+                        + "with the backup contents. This cannot be undone. "
+                        + "Make sure you have a current backup before proceeding."),
+                new ModalOverlay.Action("Import", ModalOverlay.Tone.DANGER, () -> {
+                    Task<Void> task = new Task<>() {
+                        @Override
+                        protected Void call() throws Exception {
+                            String json = new String(java.nio.file.Files.readAllBytes(file.toPath()),
+                                    java.nio.charset.StandardCharsets.UTF_8);
+                            host.migrations().importBackupJson(json);
+                            return null;
+                        }
+                    };
+                    task.setOnSucceeded(event -> Platform.runLater(() -> {
+                        toasts.show("Backup imported", ToastHost.Tone.SUCCESS);
+                        refresh();
+                        navigation.select(NavDestination.DASHBOARD);
+                    }));
+                    task.setOnFailed(event -> Platform.runLater(() ->
+                            toasts.show("Import failed: " + task.getException().getCause().getMessage(),
+                                    ToastHost.Tone.ERROR)));
+                    new Thread(task, "backup-importer").start();
+                }),
+                new ModalOverlay.Action("Cancel", ModalOverlay.Tone.PRIMARY, modals::hide));
     }
 }
