@@ -40,7 +40,7 @@ MOMENTUM-android.apk
 # Dropped-in image experiments in the repo root (untracked personal files)
 /*.jpg
 # Compiled launcher (build it yourself: apps/launcher/build.ps1 — source lives in apps/launcher/)
-MOMENTUM.exe
+# MOMENTUM.exe is committed so Windows users can double-click and run without compiling.
 # Browser profile created by MOMENTUM.exe inside the repo — personal session data, never commit
 .app-profile/
 # Local Gradle/Java runtime leftovers

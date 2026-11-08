@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=MOMENTUM
+Comment=Local-first personal goal command center
+Exec=bash -c 'cd "$(dirname "%k")" && ./scripts/momentum.sh start'
+Type=Application
+Terminal=false
+Icon=utilities-terminal
+Categories=Office;Productivity;
+StartupNotify=true

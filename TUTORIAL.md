@@ -116,7 +116,23 @@ npm stop          ← from the MOMENTUM folder (or: stop the javaw.exe process i
 
 ---
 
-## 🌐 2. Web version
+## 🍎 2. macOS app
+
+**How to launch:**
+- Double-click **`MOMENTUM.command`** in this folder (opens Terminal, starts the service, opens your browser)
+- Or run `./scripts/momentum.sh start` from a terminal
+
+**Requirements:** Java 21+ and Node.js 22+ (Homebrew: `brew install openjdk node`).
+
+## 🐧 3. Linux app
+
+**How to launch:**
+- Run `./scripts/momentum.sh start` from a terminal
+- Or double-click `MOMENTUM.desktop` (if your desktop environment supports .desktop files)
+- Make executable first: `chmod +x scripts/momentum.sh MOMENTUM.command MOMENTUM.desktop`
+
+**Requirements:** Java 21+ and Node.js 22+ (e.g. `sudo apt install default-jdk nodejs` on Debian/Ubuntu).
+## 🌐 4. Web app (any browser)
 
 **Easiest way:** double-click **`MOMENTUM Website.bat`** — it starts the hidden service and opens `http://127.0.0.1:8787` in your normal browser. You can also open `http://127.0.0.1:8787` in **any browser** yourself once the service is running (Chrome, Firefox, your phone's browser on the same Wi-Fi — but AI/sync need the service running on the computer). This is the same app as the Windows window, only as a regular browser tab.
 
@@ -138,7 +154,7 @@ Needs: Java 21+ (full JDK), Node.js 22+ with npm, and `curl` (macOS ships with a
 
 ---
 
-## 📱 3. Android
+## 📱 5. Android
 
 The mobile app is the web app wrapped into a native Android shell (Capacitor).
 
@@ -171,7 +187,7 @@ The result is `apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk`.
 
 ---
 
-## 🍎 4. iOS / iPhone
+## 🍎 6. iOS / iPhone
 
 ⚠️ **Apple requires a Mac with Xcode to compile and sign iOS apps.** The iOS project is already generated, configured and synced at `apps/mobile/ios` — it just cannot be compiled from Windows.
 
@@ -194,11 +210,11 @@ Minimum iOS version: **15.0**. Bundle id: `com.momentum.app`.
 
 ---
 
-## ⚙️ 5. The local service (the engine)
+## ⚙️ 7. The local service (the engine)
 
 Location: `services/api/build/momentum-api.jar` — the same service serves:
 - the app UI (`apps/web/dist`)
-- account login/registration + **Google / GitHub / Discord / Apple sign-in**
+- account login/registration + **Google / GitHub / Discord sign-in**
 - the **Groq AI proxy** (your key from `.env` is never sent to the browser)
 - encrypted device sync
 

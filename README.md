@@ -116,7 +116,7 @@ npm start
 
 Everything runs from this computer: the Java service, web bundle, fonts and icons are local, so MOMENTUM launches and works with **no internet connection**. Only AI replies (Groq) and optional OAuth sign-in require one. The production build also registers a service worker, so an already-opened PWA tab reloads even if the local service is stopped.
 
-For a one-click browser launch on Windows, double-click `MOMENTUM Website.bat`; for a standalone window, use `Launch MOMENTUM.bat`, the `MOMENTUM` desktop shortcut or `MOMENTUM.exe`. On Linux/macOS, run `./scripts/momentum.sh start`.
+For a one-click browser launch on Windows, double-click `MOMENTUM Website.bat`; for a standalone window, use `Launch MOMENTUM.bat`, the `MOMENTUM` desktop shortcut or `MOMENTUM.exe`. On macOS, double-click `MOMENTUM.command`. On Linux/macOS, run `./scripts/momentum.sh start` (or double-click `MOMENTUM.desktop` on Linux).
 
 For a clean rebuild:
 
