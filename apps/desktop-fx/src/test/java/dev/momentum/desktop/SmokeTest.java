@@ -8,7 +8,11 @@ import dev.momentum.desktop.ui.ToastHost;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLException;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +45,7 @@ public final class SmokeTest {
     private static final Path SNAPSHOT_DIR = Path.of("build", "smoke");
     private static Throwable failure;
     private static Stage stage;
+    private static Stage stage2;
 
     public static void main(String[] args) throws Exception {
         System.setProperty("prism.order", "sw");
@@ -186,6 +191,73 @@ public final class SmokeTest {
         });
         settle(200);
 
+        // Navigation sanity: goals list renders (empty state on fresh DB).
+        fx(() -> shell.navigate(NavDestination.GOALS));
+        settle(420);
+        fx(() -> {
+            check(shell.contentChildren() > 0, "goals list rendered");
+            snapshot(stage, "nav-goals");
+        });
+
+        // CRUD persistence check: create a goal, restart the app, confirm it survives.
+        fx(() -> {
+            String createdId = MomentumApp.host().withRepository(repository -> {
+                try {
+                    Map<String, Object> g = new LinkedHashMap<>();
+                    g.put("id", "smoke-persist-goal");
+                    g.put("title", "Smoke persistence goal");
+                    g.put("status", "active");
+                    repository.upsertGoal(g);
+                    repository.recordActivity("goal-created", "smoke-persist-goal", null, "Created smoke persistence goal");
+                    return String.valueOf(g.get("id"));
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            check(createdId != null, "goal creatable via repository");
+        });
+        settle(300);
+        fx(() -> shell.navigate(NavDestination.GOALS));
+        settle(420);
+        fx(() -> snapshot(stage, "nav-goals"));
+
+        // Goal editor renders (create mode, empty form).
+        fx(() -> shell.navigate(NavDestination.GOAL_EDIT));
+        settle(1200);
+        boolean editorVisible = false;
+        for (int attempt = 0; attempt < 5 && !editorVisible; attempt++) {
+            settle(200);
+            final boolean[] verdict = {false};
+            fx(() -> verdict[0] = shell.contentPane() != null
+                    && shell.contentPane().isVisible()
+                    && shell.contentPane().getOpacity() > 0.99);
+            editorVisible = verdict[0];
+        }
+        check(editorVisible, "goal editor fully faded in");
+        fx(() -> snapshot(stage, "nav-goal_edit"));
+
+        app.stop();
+
+        MomentumApp app2 = new MomentumApp();
+        fx(() -> {
+            app2.init();
+            stage2 = new Stage();
+            app2.start(stage2);
+        });
+        settle(600);
+        fx(() -> {
+            List<Map<String, Object>> goals = MomentumApp.host().withRepository(repository -> {
+                try {
+                    return repository.listGoals(null);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            check(goals.stream().anyMatch(g -> "Smoke persistence goal".equals(String.valueOf(g.get("title")))),
+                    "goal survives application restart");
+        });
+        fx(app2::stop);
+
         // 5. Snapshot sanity: real rendered pixels, dark cyber background.
         fx(() -> snapshot(stage, "final"));
         Path shot = SNAPSHOT_DIR.resolve("final.png");
@@ -202,6 +274,10 @@ public final class SmokeTest {
         int corner = image.getRGB(6, 6) & 0xFFFFFF;
         check((corner >> 16 & 0xFF) < 40 && (corner >> 8 & 0xFF) < 40 && (corner & 0xFF) < 40,
                 "background is dark: " + Integer.toHexString(corner));
+
+        // Database file exists on disk (real SQLite persistence).
+        Path smokeData = Path.of(System.getProperty("momentum.data.dir"));
+        check(Files.isRegularFile(smokeData.resolve("momentum.db")), "momentum.db exists on disk");
 
         fx(app::stop);
     }

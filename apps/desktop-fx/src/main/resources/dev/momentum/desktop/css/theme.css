@@ -442,6 +442,26 @@
     -fx-background-color: #1b2740;
 }
 
+/* ------------------------------------------------ goal list rows */
+.goal-list { -fx-background-color: transparent; }
+.goal-list .list-cell { -fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 6 0 4 0; }
+.goal-row { -fx-background-color: linear-gradient(to bottom, #0c1322, #0a0f1c); -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-width: 1; -fx-border-color: #1b2740; -fx-padding: 12 14; -fx-cursor: hand; }
+.goal-row:hover { -fx-border-color: #253656; }
+.goal-title { -fx-text-fill: #e2e8f0; -fx-font-size: 14px; -fx-font-weight: 600; }
+.goal-meta { -fx-text-fill: #7a8aa5; -fx-font-size: 11px; }
+.status-chip { -fx-text-fill: #ffffff; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 10 2 10; -fx-background-radius: 10; -fx-alignment: center; }
+
+/* ------------------------------------------------ forms */
+.form-grid { -fx-background-color: transparent; }
+.field-label { -fx-text-fill: #94a3b8; -fx-font-size: 12px; -fx-font-weight: 600; }
+.form-field-box { -fx-background-color: transparent; }
+.form-field { -fx-background-color: #0b1019; -fx-text-fill: #e2e8f0; -fx-background-radius: 10; -fx-border-radius: 10; -fx-border-width: 1; -fx-border-color: #1b2740; -fx-padding: 8 12; }
+.form-field:focused { -fx-border-color: -accent; }
+.field-error { -fx-text-fill: #fb7185; -fx-font-size: 11px; -fx-padding: 4 0 0 0; }
+
+.action-bar { -fx-background-color: transparent; -fx-padding: 14 0 0 0; }
+.toolbar { -fx-background-color: transparent; -fx-padding: 0 0 10 0; }
+
 /* ------------------------------------------------ scrollbars */
 .scroll-bar {
     -fx-background-color: transparent;

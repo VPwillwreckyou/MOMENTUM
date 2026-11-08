@@ -3,6 +3,7 @@ package dev.momentum.desktop.ui;
 import dev.momentum.desktop.MomentumApp;
 import dev.momentum.desktop.host.ServiceHost;
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -71,13 +72,17 @@ public class ShellController implements Initializable {
         toastLayerHost.setVisible(true);
         toastLayerHost.setManaged(true);
 
+        navigation = new NavigationManager(contentHost);
         themes = new ThemeManager(host, root::setStyle);
 
-        pages = new PageFactory(host, themes, toasts, modals);
-        navigation = new NavigationManager(contentHost);
-        navigation.paginate(pages::page, destination -> pageTitle.setText(destination.title));
+        pages = new PageFactory(host, themes, toasts, modals, navigation, this);
+        navigation.paginate(pages::page, (destination, parameter) -> pageTitle.setText(destination.title));
 
-        for (NavDestination destination : NavDestination.values()) {
+        for (NavDestination destination : List.of(
+                NavDestination.DASHBOARD, NavDestination.GOALS, NavDestination.TASKS,
+                NavDestination.CALENDAR, NavDestination.AI_PLANNER, NavDestination.FINANCE,
+                NavDestination.ACTIVITY, NavDestination.ARCHIVE, NavDestination.TRASH,
+                NavDestination.SETTINGS)) {
             Button button = NavigationManager.navButton(destination.glyph, destination.title);
             navigation.register(destination, button);
             navBox.getChildren().add(button);
@@ -141,6 +146,11 @@ public class ShellController implements Initializable {
     /** Programmatic navigation (used by smoke tests and future shortcuts). */
     public void navigate(NavDestination destination) {
         navigation.select(destination);
+    }
+
+    /** Programmatic navigation carrying a parameter (e.g. a goal id). */
+    public void navigate(NavDestination destination, Object parameter) {
+        navigation.select(destination, parameter);
     }
 
     public NavDestination currentDestination() {

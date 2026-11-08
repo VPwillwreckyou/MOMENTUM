@@ -18,14 +18,14 @@ import javafx.util.Duration;
  */
 public final class NavigationManager {
 
-    /** Page builders provided by the shell. */
+    /** Page builders provided by the shell. A destination may carry a parameter (e.g. a goal id). */
     public interface PageBuilder {
-        Node build(NavDestination destination);
+        Node build(NavDestination destination, Object parameter);
     }
 
     /** Notify the shell when the destination changes (header, document title...). */
     public interface Listener {
-        void onNavigated(NavDestination destination);
+        void onNavigated(NavDestination destination, Object parameter);
     }
 
     private final StackPane contentHost;
@@ -33,6 +33,7 @@ public final class NavigationManager {
     private PageBuilder builder;
     private Listener listener;
     private NavDestination current;
+    private Object currentParameter;
 
     public NavigationManager(StackPane contentHost) {
         this.contentHost = contentHost;
@@ -55,18 +56,24 @@ public final class NavigationManager {
         return current;
     }
 
-    /** Switches to a destination, applying the slide+fade transition. */
-    public void select(NavDestination destination) {
-        if (destination == null || destination == current) {
+    public Object currentParameter() {
+        return currentParameter;
+    }
+
+    /** Switches to a destination, optionally carrying a parameter (e.g. a goal id). */
+    public void select(NavDestination destination, Object parameter) {
+        if (destination == null) return;
+        if (destination == current && java.util.Objects.equals(parameter, currentParameter)) {
             return;
         }
         current = destination;
+        currentParameter = parameter;
         for (Map.Entry<NavDestination, Button> entry : buttons.entrySet()) {
             boolean active = entry.getKey() == destination;
             entry.getValue().getStyleClass().remove("active");
             if (active) entry.getValue().getStyleClass().add("active");
         }
-        Node page = builder.build(destination);
+        Node page = builder.build(destination, parameter);
         page.setTranslateY(10);
         page.setOpacity(0);
         contentHost.getChildren().setAll(page);
@@ -81,8 +88,13 @@ public final class NavigationManager {
         fade.setOnFinished(event -> page.setOpacity(1));
         slide.setOnFinished(event -> page.setTranslateY(0));
         if (listener != null) {
-            listener.onNavigated(destination);
+            listener.onNavigated(destination, parameter);
         }
+    }
+
+    /** Switches to a destination without a parameter. */
+    public void select(NavDestination destination) {
+        select(destination, null);
     }
 
     /** Creates a nav button; shell adds it to the sidebar visual list. */

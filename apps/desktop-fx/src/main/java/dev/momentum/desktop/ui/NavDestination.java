@@ -11,7 +11,9 @@ public enum NavDestination {
     ACTIVITY("Activity", "\u21BB"),
     ARCHIVE("Archive", "\u2752"),
     TRASH("Trash", "\u2716"),
-    SETTINGS("Settings", "\u2699");
+    SETTINGS("Settings", "\u2699"),
+    GOAL_DETAIL("Goal detail", "\u25CF"),
+    GOAL_EDIT("Goal editor", "\u25A1");
 
     public final String title;
     public final String glyph;

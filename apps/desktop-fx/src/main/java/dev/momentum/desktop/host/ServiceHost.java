@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Bridges the JavaFX desktop UI directly to the existing MOMENTUM backend:
@@ -26,7 +27,10 @@ public final class ServiceHost implements AutoCloseable {
 
     /** Default location of all desktop data: %LOCALAPPDATA%\MOMENTUM\data on Windows. */
     public static Path defaultDataDirectory() {
-        String override = System.getenv("MOMENTUM_DATA_DIR");
+        String override = System.getProperty("momentum.data.dir");
+        if (override == null || override.isBlank()) {
+            override = System.getenv("MOMENTUM_DATA_DIR");
+        }
         if (override != null && !override.isBlank()) {
             return Path.of(override).toAbsolutePath().normalize();
         }
@@ -73,6 +77,22 @@ public final class ServiceHost implements AutoCloseable {
 
     public MigrationManager migrations() {
         return migrations;
+    }
+
+    /**
+     * Runs code against a fresh SqliteRepository bound to this host's data
+     * directory, commits on success and rolls back on failure. Each call opens
+     * its own connection so database work is safe to run on background threads.
+     */
+    public <T> T withRepository(Function<SqliteRepository, T> action) {
+        try (Database database = new Database(dataDirectory.toString());
+             SqliteRepository repository = new SqliteRepository(database)) {
+            T result = action.apply(repository);
+            repository.commit();
+            return result;
+        } catch (SQLException e) {
+            throw new RuntimeException("Database operation failed", e);
+        }
     }
 
     /** Read a JSON settings value from the local SQLite database. */
