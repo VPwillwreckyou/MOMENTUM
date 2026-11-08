@@ -31,6 +31,8 @@ try {
     }
 
     $jar = Join-Path $repo 'services\api\build\momentum-api.jar'
+    $sqliteJar = Join-Path $repo 'services\api\lib\sqlite-jdbc.jar'
+    $slf4jJar = Join-Path $repo 'services\api\lib\slf4j-api.jar'
     if ($Rebuild -or -not (Test-Path $jar)) {
         Write-Host 'Building MOMENTUM Java service...'
         & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot '..\services\api\scripts\build.ps1')
@@ -53,7 +55,10 @@ try {
     Write-Host "MOMENTUM starting at $url"
     Write-Host 'Press Ctrl+C to stop.'
     Write-Host ''
-    & java -jar $jar
+    $cp = $jar
+    if (Test-Path $sqliteJar) { $cp = "$cp;$sqliteJar" }
+    if (Test-Path $slf4jJar) { $cp = "$cp;$slf4jJar" }
+    & java -cp $cp dev.momentum.MomentumServer
     exit $LASTEXITCODE
 }
 finally {

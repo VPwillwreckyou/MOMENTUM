@@ -26,6 +26,10 @@ public final class TestRunner {
         test("oauth links by identity and verified email", TestRunner::oauthAccounts);
         test("sync store enforces optimistic revisions", TestRunner::syncStore);
         test("sync store rejects a malformed envelope", TestRunner::syncRejectsMalformed);
+        test("backup import round trips goals, tasks and attachments", DataMigrationTest::importRoundTrip);
+        test("failed import rolls back and keeps original data intact", DataMigrationTest::rollbackOnCorruptBackup);
+        test("attachment size mismatch aborts migration", DataMigrationTest::rollbackOnAttachmentSizeMismatch);
+        test("database backups keep the newest five", DataMigrationTest::backupRetentionPolicy);
 
         System.out.println();
         System.out.println(passed + " passed, " + failed + " failed");

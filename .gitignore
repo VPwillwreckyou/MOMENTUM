@@ -4,6 +4,7 @@ dist/
 build/
 out/
 data/
+!/services/api/src/main/java/dev/momentum/data/
 *.log
 .env
 .env.*
@@ -28,12 +29,16 @@ apps/mobile/ios/App/DerivedData/
 services/api/build/
 .browser-profile*/
 .e2e-data/
+!/services/api/src/main/java/dev/momentum/data/
 .desktop-test-data/
+!/services/api/src/main/java/dev/momentum/data/
 .tmp/
 screenshots/
 apps/mobile/ios/App/Pods/
 apps/mobile/ios/App/App.xcworkspace/xcuserdata/
+!/services/api/src/main/java/dev/momentum/data/
 apps/mobile/ios/App/App.xcodeproj/xcuserdata/
+!/services/api/src/main/java/dev/momentum/data/
 # Compiled deliverables and machine-local artifacts (publish the APK as a GitHub Release asset instead)
 MOMENTUM-android.apk
 *.lnk
@@ -45,6 +50,9 @@ MOMENTUM-android.apk
 .app-profile/
 # Local Gradle/Java runtime leftovers
 services/api/build/tmp/
+# SQLite JDBC (downloaded by build script if missing)
+services/api/lib/sqlite-jdbc.jar
+services/api/lib/slf4j-api.jar
 
 
 # TypeScript build cache

@@ -261,6 +261,33 @@ Everything you create inside MOMENTUM is stored **only on this computer**:
 
 **Backup = copy the whole `MOMENTUM/data/` folder somewhere safe** (USB drive, cloud folder). Restoring = put the copy back and restart with `npm run restart`.
 
+### Bringing your browser (IndexedDB) data to the desktop database
+
+MOMENTUM stores a desktop copy of your workspace in SQLite (`data/momentum.db`) with
+attachments as files (`data/attachments/`). Your browser data is **never** touched or
+deleted by this import — it only reads a backup file you export:
+
+1. In the web app: **Settings → Export backup** (downloads `momentum-backup-YYYY-MM-DD.json`).
+2. Import it into the desktop database:
+
+   ```powershell
+   curl.exe -s -X POST -H "Content-Type: application/json" ^
+     --data-binary "@momentum-backup-2026-01-08.json" ^
+     http://127.0.0.1:8787/api/db/import
+   ```
+
+   A successful reply looks like `{"ok":true,"counts":{...},"integrityCheck":"ok",...}`.
+3. Check the result any time: <http://127.0.0.1:8787/api/db/status>
+
+Safety net, all automatic:
+
+- **Validation first**: the import is validated (row counts, integrity check, foreign
+  keys, attachment files and sizes) **before** anything replaces the live database.
+- **Rollback**: a failed import changes nothing — the old `momentum.db` and all
+  attachment files are untouched.
+- **Backups**: every import takes a database backup first (`data/backups/`, newest
+  5 kept), and a daily backup is created when the service starts.
+
 ---
 
 ## 🌉 Use MOMENTUM from anywhere (not just home Wi-Fi)

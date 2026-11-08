@@ -8,6 +8,7 @@ import dev.momentum.auth.OAuthService;
 import dev.momentum.core.HttpUtil;
 import dev.momentum.core.PasswordHasher;
 import dev.momentum.core.RateLimiter;
+import dev.momentum.data.MigrationManager;
 import dev.momentum.sync.SyncStore;
 import dev.momentum.web.StaticFiles;
 import java.io.IOException;
@@ -41,6 +42,7 @@ public final class MomentumServer {
     private static final int MAX_AUTH_BODY = 32 * 1024;
     private static final int MAX_AI_BODY = 120 * 1024;
     private static final int MAX_SYNC_BODY = 4_300_000;
+    private static final int MAX_IMPORT_BODY = 180 * 1024 * 1024; // web export caps at 150 MB
 
     private final AccountStore accounts;
     private final OAuthService oauth;
@@ -60,6 +62,7 @@ public final class MomentumServer {
         return thread;
     });
     private final MomentumService service;
+    private final MigrationManager migrations;
     private int port;
     private String publicBase;
     private String appUrl;
@@ -77,6 +80,7 @@ public final class MomentumServer {
         this.sync = new SyncStore(dataDirectory);
         this.ai = new AiProxy();
         this.service = new MomentumService(accounts, oauth, sync, ai, publicBase, appUrl, secureCookies, allowLocalAiKey);
+        this.migrations = new MigrationManager(dataDirectory);
         this.staticFiles = new StaticFiles(webRoot, secureCookies);
         this.allowedOrigins = buildAllowedOrigins();
         String host = env("MOMENTUM_HOST", "127.0.0.1");
@@ -94,6 +98,14 @@ public final class MomentumServer {
         server.start();
         port = server.getAddress().getPort();
         publicBase = publicBase.replaceFirst(":\\d+$", ":" + port);
+        // Daily automatic database backup (skipped when nothing to back up yet).
+        maintenance.schedule(() -> {
+            try {
+                migrations.ensureDailyBackup();
+            } catch (IOException e) {
+                System.out.println("  Startup database backup failed: " + e.getMessage());
+            }
+        }, 10, TimeUnit.SECONDS);
         maintenance.scheduleAtFixedRate(() -> {
             accounts.cleanupSessions();
             authLimiter.cleanup();
@@ -261,11 +273,39 @@ public final class MomentumServer {
             handleAi(exchange);
             return;
         }
+        if (path.equals("/api/db/status")) {
+            requireMethod(exchange, "GET");
+            try {
+                HttpUtil.sendJson(exchange, 200, migrations.status());
+            } catch (IOException exception) {
+                HttpUtil.sendError(exchange, 500, exception.getMessage());
+            }
+            return;
+        }
+        if (path.equals("/api/db/import")) {
+            requireMethod(exchange, "POST");
+            handleImport(exchange);
+            return;
+        }
         if (path.equals("/api") || path.equals("/api/")) {
             HttpUtil.sendJson(exchange, 200, Map.of("name", "MOMENTUM API", "version", VERSION));
             return;
         }
         HttpUtil.sendError(exchange, 404, "API route not found.");
+    }
+
+    private void handleImport(HttpExchange exchange) throws IOException {
+        try {
+            String body = HttpUtil.readText(exchange, MAX_IMPORT_BODY);
+            Map<String, Object> report = migrations.importBackupJson(body);
+            HttpUtil.sendJson(exchange, 200, report);
+        } catch (IllegalArgumentException | IllegalStateException exception) {
+            HttpUtil.sendError(exchange, 400, exception.getMessage());
+        } catch (java.sql.SQLException exception) {
+            HttpUtil.sendError(exchange, 500, "The local database rejected the import: " + exception.getMessage());
+        } catch (Exception exception) {
+            HttpUtil.sendError(exchange, 500, "Import failed, nothing was changed: " + exception.getMessage());
+        }
     }
 
     private void handleOAuth(HttpExchange exchange, String path) throws IOException {

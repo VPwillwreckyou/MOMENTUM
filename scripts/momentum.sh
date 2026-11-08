@@ -15,6 +15,19 @@ set -u
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 JAR="$REPO/services/api/build/momentum-api.jar"
 SRC="$REPO/services/api/src/main/java"
+LIB="$REPO/services/api/lib"
+SQLITE_JAR="$LIB/sqlite-jdbc.jar"
+SLF4J_JAR="$LIB/slf4j-api.jar"
+if [ ! -f "$SQLITE_JAR" ]; then
+  mkdir -p "$LIB"
+  echo "Downloading SQLite JDBC..."
+  curl -fsSL -o "$SQLITE_JAR" "https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.45.1.0/sqlite-jdbc-3.45.1.0.jar" || die "Failed to download SQLite JDBC."
+fi
+if [ ! -f "$SLF4J_JAR" ]; then
+  mkdir -p "$LIB"
+  echo "Downloading SLF4J API..."
+  curl -fsSL -o "$SLF4J_JAR" "https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar" || die "Failed to download SLF4J API."
+fi
 PORT="${MOMENTUM_PORT:-8787}"
 BASE="http://127.0.0.1:$PORT"
 LOGDIR="${TMPDIR:-/tmp}/momentum"
@@ -45,7 +58,13 @@ build_service() {
   mkdir -p "$REPO/services/api/build/classes"
   find "$REPO/services/api/build/classes" -type f -delete 2>/dev/null || true
   find "$SRC" -name '*.java' > "$REPO/services/api/build/sources.txt"
-  javac --release 21 -encoding UTF-8 -d "$REPO/services/api/build/classes" @"$REPO/services/api/build/sources.txt" || die "compilation failed"
+  CP=""
+  [ -f "$SQLITE_JAR" ] && CP="$SQLITE_JAR"
+  if [ -n "$CP" ]; then
+    javac --release 21 -encoding UTF-8 -cp "$CP" -d "$REPO/services/api/build/classes" @"$REPO/services/api/build/sources.txt" || die "compilation failed"
+  else
+    javac --release 21 -encoding UTF-8 -d "$REPO/services/api/build/classes" @"$REPO/services/api/build/sources.txt" || die "compilation failed"
+  fi
   cat > "$REPO/services/api/build/manifest.txt" <<'EOF'
 Manifest-Version: 1.0
 Main-Class: dev.momentum.MomentumServer
@@ -73,7 +92,10 @@ start() {
   fi
   [ -n "${MOMENTUM_WEB_DIST:-}" ] || export MOMENTUM_WEB_DIST="$REPO/apps/web/dist"
   echo "Starting MOMENTUM service on port $PORT..."
-  nohup java -jar "$JAR" > "$LOGDIR/service-out.log" 2> "$LOGDIR/service-err.log" &
+  CP="$JAR"
+  [ -f "$SQLITE_JAR" ] && CP="$CP:$(realpath "$SQLITE_JAR")"
+  [ -f "$SLF4J_JAR" ] && CP="$CP:$(realpath "$SLF4J_JAR")"
+  nohup java -cp "$CP" dev.momentum.MomentumServer > "$LOGDIR/service-out.log" 2> "$LOGDIR/service-err.log" &
   echo $! > "$PIDFILE"
   for _ in $(seq 1 30); do
     if health; then

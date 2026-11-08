@@ -13,10 +13,17 @@ Get-ChildItem -Path $testClasses -Recurse -File -ErrorAction SilentlyContinue | 
 $files = @(Get-ChildItem -Path $src -Recurse -Filter '*.java' | ForEach-Object { $_.FullName })
 if ($files.Count -eq 0) { throw 'No Java tests found.' }
 
+$lib = Join-Path $api 'lib'
+$sqliteJar = Join-Path $lib 'sqlite-jdbc.jar'
+$slf4jJar = Join-Path $lib 'slf4j-api.jar'
+$separator = [IO.Path]::PathSeparator
+$cpList = @($classes, $sqliteJar, $slf4jJar) | Where-Object { Test-Path $_ }
+$cp = $cpList -join $separator
+$baseCp = "$cp$separator$testClasses"
+
 Write-Host "Compiling $($files.Count) test files..."
-& javac --release 21 -encoding UTF-8 -cp $classes -d $testClasses @files
+& javac --release 21 -encoding UTF-8 -cp $cp -d $testClasses @files
 if ($LASTEXITCODE -ne 0) { throw "Test compilation failed with exit code $LASTEXITCODE" }
 
-$separator = [IO.Path]::PathSeparator
-& java -ea -cp "$classes$separator$testClasses" dev.momentum.TestRunner
+& java -ea -cp $baseCp dev.momentum.TestRunner
 exit $LASTEXITCODE

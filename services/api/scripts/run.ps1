@@ -2,6 +2,8 @@ $ErrorActionPreference = 'Stop'
 $api = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $repo = (Resolve-Path (Join-Path $api '..\..')).Path
 $jar = Join-Path $api 'build\momentum-api.jar'
+$lib = Join-Path $api 'lib'
+$sqliteJar = Join-Path $lib 'sqlite-jdbc.jar'
 
 if (-not (Test-Path $jar)) {
     & (Join-Path $PSScriptRoot 'build.ps1')
@@ -28,10 +30,15 @@ if (Test-Path $envFile) {
     }
 }
 
+$cp = $jar
+if (Test-Path $sqliteJar) { $cp = "$cp;$sqliteJar" }
+$slf4jJar = Join-Path $api 'lib\slf4j-api.jar'
+if (Test-Path $slf4jJar) { $cp = "$cp;$slf4jJar" }
+
 Push-Location $repo
 try {
     Write-Host "Starting MOMENTUM API from $repo"
-    & java -jar $jar
+    & java -cp $cp dev.momentum.MomentumServer
     exit $LASTEXITCODE
 }
 finally {

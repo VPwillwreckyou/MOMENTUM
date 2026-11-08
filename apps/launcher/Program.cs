@@ -52,11 +52,16 @@ internal static class Program
             string jar = Path.Combine(baseDir, "services", "api", "build", "momentum-api.jar");
             if (!File.Exists(jar))
                 throw new FileNotFoundException("MOMENTUM service is missing:\n" + jar);
+            string sqliteJar = Path.Combine(baseDir, "services", "api", "lib", "sqlite-jdbc.jar");
+            string slf4jJar = Path.Combine(baseDir, "services", "api", "lib", "slf4j-api.jar");
 
             string java = FindJava();
+            string classpath = jar;
+            if (File.Exists(sqliteJar)) classpath += ";" + sqliteJar;
+            if (File.Exists(slf4jJar)) classpath += ";" + slf4jJar;
             var service = new ProcessStartInfo(java)
             {
-                Arguments = "-jar \"" + jar + "\"",
+                Arguments = "-cp \"" + classpath + "\" dev.momentum.MomentumServer",
                 WorkingDirectory = Path.GetDirectoryName(jar),
                 UseShellExecute = false,
                 CreateNoWindow = true,
