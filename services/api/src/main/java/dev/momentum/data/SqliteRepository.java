@@ -373,6 +373,104 @@ public final class SqliteRepository implements AutoCloseable {
         }
     }
 
+    // ---------------------------------------------------------------- CSV import/export
+
+    /** Export all goals to CSV format (header + one row per goal). */
+    public String exportGoalsCsv() throws SQLException {
+        StringBuilder sb = new StringBuilder();
+        sb.append("id,title,description,notes,category_id,status,kind,priority,start_date,deadline,created_at,updated_at,completed_at\n");
+        for (Map<String, Object> g : listGoals(null)) {
+            sb.append(csvValue(String.valueOf(g.get("id")))).append(',');
+            sb.append(csvValue(String.valueOf(g.get("title")))).append(',');
+            sb.append(csvValue(valueOr(g, "description", ""))).append(',');
+            sb.append(csvValue(valueOr(g, "notes", ""))).append(',');
+            sb.append(csvValue(valueOr(g, "categoryId", ""))).append(',');
+            sb.append(csvValue(valueOr(g, "status", ""))).append(',');
+            sb.append(csvValue(valueOr(g, "kind", ""))).append(',');
+            sb.append(csvValue(valueOr(g, "priority", ""))).append(',');
+            sb.append(csvValue(valueOr(g, "startDate", ""))).append(',');
+            sb.append(csvValue(valueOr(g, "deadline", ""))).append(',');
+            sb.append(csvValue(valueOr(g, "createdAt", ""))).append(',');
+            sb.append(csvValue(valueOr(g, "updatedAt", ""))).append(',');
+            sb.append(csvValue(valueOr(g, "completedAt", ""))).append('\n');
+        }
+        return sb.toString();
+    }
+
+    /** Import goals from CSV. Returns number of goals imported. */
+    public int importGoalsCsv(String csvContent) throws SQLException {
+        String[] lines = csvContent.split("\n");
+        if (lines.length < 2) return 0;
+        int imported = 0;
+        for (int i = 1; i < lines.length; i++) {
+            String line = lines[i].trim();
+            if (line.isEmpty()) continue;
+            String[] fields = parseCsvLine(line);
+            if (fields.length < 3) continue;
+            Map<String, Object> goal = new LinkedHashMap<>();
+            goal.put("id", java.util.UUID.randomUUID().toString());
+            goal.put("title", fields[1]);
+            goal.put("description", fields.length > 2 ? fields[2] : "");
+            goal.put("notes", fields.length > 3 ? fields[3] : "");
+            goal.put("categoryId", fields.length > 4 ? fields[4] : "");
+            goal.put("status", fields.length > 5 ? fields[5] : "active");
+            goal.put("kind", fields.length > 6 ? fields[6] : "one-time");
+            goal.put("priority", fields.length > 7 ? fields[7] : "medium");
+            goal.put("startDate", fields.length > 8 ? fields[8] : "");
+            goal.put("deadline", fields.length > 9 ? fields[9] : "");
+            goal.put("createdAt", java.time.Instant.now().toString());
+            goal.put("updatedAt", java.time.Instant.now().toString());
+            upsertGoal(goal);
+            imported++;
+        }
+        return imported;
+    }
+
+    private static String csvValue(String v) {
+        if (v == null) return "";
+        if (v.contains(",") || v.contains("\"") || v.contains("\n")) {
+            return "\"" + v.replace("\"", "\"\"") + "\"";
+        }
+        return v;
+    }
+
+    private static String[] parseCsvLine(String line) {
+        List<String> fields = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean inQuotes = false;
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (inQuotes) {
+                if (c == '"') {
+                    if (i + 1 < line.length() && line.charAt(i + 1) == '"') {
+                        current.append('"');
+                        i++;
+                    } else {
+                        inQuotes = false;
+                    }
+                } else {
+                    current.append(c);
+                }
+            } else {
+                if (c == '"') {
+                    inQuotes = true;
+                } else if (c == ',') {
+                    fields.add(current.toString());
+                    current.setLength(0);
+                } else {
+                    current.append(c);
+                }
+            }
+        }
+        fields.add(current.toString());
+        return fields.toArray(new String[0]);
+    }
+
+    private static String valueOr(Map<String, Object> map, String key, String def) {
+        Object v = map.get(key);
+        return v == null ? def : String.valueOf(v);
+    }
+
     // ---------------------------------------------------------------- category queries
 
     /** All non-trashed categories, name ascending. */

@@ -9,6 +9,7 @@ public enum NavDestination {
     AI_PLANNER("AI Planner", "\u2726"),
     FINANCE("Finance", "$"),
     GLOBAL_SEARCH("Search", "\u270D"),
+    IMPORT_EXPORT("Import/Export", "\u2B07"),
     ACTIVITY("Activity", "\u21BB"),
     ARCHIVE("Archive", "\u2752"),
     TRASH("Trash", "\u2716"),

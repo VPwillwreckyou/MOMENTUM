@@ -26,6 +26,8 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.45.1.0")
     // JNA for Windows DPAPI (CryptProtectData/CryptUnprotectData) device-bound encryption.
     implementation("net.java.dev.jna:jna:5.14.0")
+    // Apache PDFBox for PDF export (no browser/WebView required).
+    implementation("org.apache.pdfbox:pdfbox:3.0.3")
 }
 
 java {

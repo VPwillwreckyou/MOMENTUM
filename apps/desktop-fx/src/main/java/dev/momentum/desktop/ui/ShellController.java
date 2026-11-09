@@ -81,6 +81,7 @@ public class ShellController implements Initializable {
         for (NavDestination destination : List.of(
                 NavDestination.DASHBOARD, NavDestination.GOALS, NavDestination.TASKS,
                 NavDestination.CALENDAR, NavDestination.AI_PLANNER, NavDestination.FINANCE,
+                NavDestination.GLOBAL_SEARCH, NavDestination.IMPORT_EXPORT,
                 NavDestination.ACTIVITY, NavDestination.ARCHIVE, NavDestination.TRASH,
                 NavDestination.CATEGORIES, NavDestination.AUTH,
                 NavDestination.ONBOARDING, NavDestination.SETTINGS)) {

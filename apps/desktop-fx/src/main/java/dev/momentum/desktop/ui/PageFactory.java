@@ -53,6 +53,7 @@ public final class PageFactory {
             case CALENDAR -> new CalendarController(host, toasts, modals, navigation);
             case FINANCE -> new FinanceController(host, toasts, modals, navigation);
             case GLOBAL_SEARCH -> new GlobalSearchController(host, toasts, modals, navigation);
+            case IMPORT_EXPORT -> new ImportExportController(host, toasts, modals, navigation);
             case ACTIVITY -> new ActivityTimelineController(host, toasts, modals, navigation);
             case ARCHIVE -> new ArchiveController(host, toasts, modals, navigation);
             case TRASH -> new TrashController(host, toasts, modals, navigation);
