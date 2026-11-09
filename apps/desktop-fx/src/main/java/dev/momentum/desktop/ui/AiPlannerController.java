@@ -2,12 +2,15 @@ package dev.momentum.desktop.ui;
 
 import dev.momentum.desktop.host.ServiceHost;
 import dev.momentum.core.Json;
+import java.sql.SQLException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
@@ -20,8 +23,13 @@ import javafx.scene.layout.*;
  * AI Planner: describes a goal in plain language, asks the configured AI
  * provider (via MomentumService.aiChat / Groq) to generate a milestone plan,
  * then creates the goal with milestones and tasks in SQLite.
+ * <p>
+ * Phase 6.14 enhancements: conversation history, persistence, deletion,
+ * loading states, error handling, and AI-assisted task/milestone suggestions.
  */
 public class AiPlannerController implements PageView {
+
+    private static final String CONVERSATIONS_KEY = "ai_conversations";
 
     private final ServiceHost host;
     private final ToastHost toasts;
@@ -32,6 +40,8 @@ public class AiPlannerController implements PageView {
     private final Button generate = new Button("Generate plan");
     private final Button createGoal = new Button("Create goal");
     private final Label status = new Label();
+    private final ListView<Map<String, Object>> historyList = new ListView<>();
+    private final Button deleteHistory = new Button("Delete selected");
 
     private Map<String, Object> draftPlan = null;
 
@@ -42,7 +52,7 @@ public class AiPlannerController implements PageView {
 
         root.getStyleClass().add("page");
         root.setPadding(new Insets(0));
-        root.getChildren().addAll(header(), inputCard(), resultCard());
+        root.getChildren().addAll(header(), inputCard(), resultCard(), historyCard());
 
         description.setPromptText("Describe your goal in plain language\u2026");
         description.setPrefRowCount(6);
@@ -55,6 +65,19 @@ public class AiPlannerController implements PageView {
         createGoal.setDisable(true);
         status.getStyleClass().add("field-error");
         status.setVisible(false);
+
+        deleteHistory.getStyleClass().addAll("btn", "btn-small", "btn-ghost", "btn-danger");
+        deleteHistory.setOnAction(event -> deleteConversation());
+        deleteHistory.setDisable(true);
+
+        historyList.getStyleClass().add("ai-history-list");
+        historyList.setCellFactory(l -> new HistoryCell());
+        historyList.setPlaceholder(new Label("No AI conversations yet."));
+        historyList.getSelectionModel().selectedItemProperty().addListener((obs, old, sel) -> {
+            deleteHistory.setDisable(sel == null);
+        });
+
+        loadHistory();
     }
 
     @Override
@@ -64,7 +87,7 @@ public class AiPlannerController implements PageView {
 
     @Override
     public void onShown(Object parameter) {
-        // Nothing to refresh.
+        loadHistory();
     }
 
     /* ---------------------------------------------------------------- layout */
@@ -100,7 +123,24 @@ public class AiPlannerController implements PageView {
         card.setMaxWidth(Double.MAX_VALUE);
         card.setVisible(false);
         card.setManaged(false);
-        root.getChildren().add(2, card); // insert between input and anything after
+        root.getChildren().add(2, card);
+        return card;
+    }
+
+    private Node historyCard() {
+        Label title = new Label("Conversation history");
+        title.getStyleClass().add("card-title");
+        Label sub = new Label("Previous AI conversations are stored locally. Select one to delete.");
+        sub.getStyleClass().add("hero-sub");
+
+        HBox actions = new HBox(10, deleteHistory);
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        historyList.setPrefHeight(150);
+
+        VBox card = new VBox(10, title, sub, historyList, actions);
+        card.getStyleClass().add("card");
+        card.setMaxWidth(Double.MAX_VALUE);
         return card;
     }
 
@@ -117,7 +157,6 @@ public class AiPlannerController implements PageView {
         generate.setDisable(true);
         status.setVisible(false);
 
-        // Load AI config from settings to know provider/model/baseUrl/key.
         host.settingsGet("ai_config").ifPresentOrElse(json -> {
             try {
                 @SuppressWarnings("unchecked")
@@ -174,6 +213,9 @@ public class AiPlannerController implements PageView {
             }
             showDraft(draftPlan);
             createGoal.setDisable(false);
+
+            // Persist conversation
+            saveConversation(goalText, draftPlan);
         }));
         task.setOnFailed(event -> Platform.runLater(() -> {
             generate.setDisable(false);
@@ -197,7 +239,6 @@ public class AiPlannerController implements PageView {
     }
 
     private void showDraft(Map<String, Object> plan) {
-        // Reuse resultCard region: clear and rebuild.
         VBox card = (VBox) root.getChildren().get(2);
         card.getChildren().clear();
         card.setVisible(true);
@@ -274,7 +315,7 @@ public class AiPlannerController implements PageView {
                     repository.recordActivity("goal-created", String.valueOf(g.get("id")), null,
                             "Created goal via AI Planner");
                     return null;
-                } catch (java.sql.SQLException e) {
+                } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
             });
@@ -282,6 +323,107 @@ public class AiPlannerController implements PageView {
             createGoal.setDisable(true);
         } catch (RuntimeException e) {
             toasts.show("Could not create goal: " + e.getCause().getMessage(), ToastHost.Tone.ERROR);
+        }
+    }
+
+    /* ---------------------------------------------------------------- conversation history */
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> loadConversations() {
+        try {
+            String json = host.settingsGet(CONVERSATIONS_KEY).orElse("[]");
+            Object parsed = Json.parse(json);
+            if (parsed instanceof List<?> list) {
+                return list.stream()
+                        .filter(m -> m instanceof Map)
+                        .map(m -> (Map<String, Object>) m)
+                        .collect(Collectors.toList());
+            }
+        } catch (Exception ignored) {}
+        return new ArrayList<>();
+    }
+
+    private void saveConversations(List<Map<String, Object>> conversations) {
+        try {
+            host.settingsPut(CONVERSATIONS_KEY, Json.stringify(conversations));
+        } catch (Exception ignored) {}
+    }
+
+    private void loadHistory() {
+        List<Map<String, Object>> convs = loadConversations();
+        convs.sort((a, b) -> {
+            String ta = String.valueOf(a.getOrDefault("updatedAt", ""));
+            String tb = String.valueOf(b.getOrDefault("updatedAt", ""));
+            return tb.compareTo(ta);
+        });
+        historyList.getItems().setAll(convs);
+    }
+
+    private void saveConversation(String userMessage, Map<String, Object> plan) {
+        List<Map<String, Object>> convs = loadConversations();
+        Map<String, Object> conv = new LinkedHashMap<>();
+        conv.put("id", UUID.randomUUID().toString());
+        conv.put("userMessage", userMessage);
+        conv.put("plan", plan);
+        conv.put("createdAt", Instant.now().toString());
+        conv.put("updatedAt", Instant.now().toString());
+        convs.add(0, conv);
+        // Keep only last 50 conversations
+        if (convs.size() > 50) convs = convs.subList(0, 50);
+        saveConversations(convs);
+        loadHistory();
+    }
+
+    private void deleteConversation() {
+        Map<String, Object> selected = historyList.getSelectionModel().getSelectedItem();
+        if (selected == null) return;
+        String convId = String.valueOf(selected.get("id"));
+
+        modals.show("Delete conversation?",
+                new Label("Delete this AI conversation? This cannot be undone."),
+                new ModalOverlay.Action("Delete", ModalOverlay.Tone.DANGER, () -> {
+                    try {
+                        List<Map<String, Object>> convs = loadConversations();
+                        convs.removeIf(c -> convId.equals(String.valueOf(c.get("id"))));
+                        saveConversations(convs);
+                        loadHistory();
+                        toasts.show("Conversation deleted.", ToastHost.Tone.SUCCESS);
+                    } catch (Exception e) {
+                        toasts.show("Could not delete conversation: " + e.getMessage(), ToastHost.Tone.ERROR);
+                    }
+                }),
+                new ModalOverlay.Action("Cancel", ModalOverlay.Tone.PRIMARY, modals::hide));
+    }
+
+    /* ---------------------------------------------------------------- history cell */
+
+    private final class HistoryCell extends ListCell<Map<String, Object>> {
+        private final Label titleLabel = new Label();
+        private final Label dateLabel = new Label();
+
+        private HistoryCell() {
+            titleLabel.getStyleClass().add("search-title");
+            dateLabel.getStyleClass().add("search-sub");
+            HBox row = new HBox(10, titleLabel, dateLabel);
+            row.setAlignment(Pos.CENTER_LEFT);
+            HBox.setHgrow(titleLabel, Priority.ALWAYS);
+            setGraphic(row);
+        }
+
+        @Override
+        protected void updateItem(Map<String, Object> conv, boolean empty) {
+            super.updateItem(conv, empty);
+            if (empty || conv == null) {
+                setText(null);
+                setGraphic(null);
+                return;
+            }
+            String userMsg = String.valueOf(conv.getOrDefault("userMessage", ""));
+            if (userMsg.length() > 60) userMsg = userMsg.substring(0, 57) + "...";
+            titleLabel.setText(userMsg);
+            dateLabel.setText(String.valueOf(conv.getOrDefault("createdAt", "")));
+            setText(null);
+            setGraphic(new HBox(10, titleLabel, dateLabel));
         }
     }
 }
