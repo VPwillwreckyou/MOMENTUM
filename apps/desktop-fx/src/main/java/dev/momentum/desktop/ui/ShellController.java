@@ -11,6 +11,9 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -101,6 +104,33 @@ public class ShellController implements Initializable {
         titlebar.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             if (event.getClickCount() == 2 && event.getTarget() == titlebar) {
                 toggleMaximize();
+            }
+        });
+
+        // ------------------------------------------------------------- keyboard shortcuts
+        root.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.isControlDown() && event.getCode() == KeyCode.N && !event.isShiftDown()) {
+                // Ctrl+N: Create goal
+                event.consume();
+                navigation.select(NavDestination.GOAL_EDIT);
+            } else if (event.isControlDown() && event.isShiftDown() && event.getCode() == KeyCode.N) {
+                // Ctrl+Shift+N: Create task
+                event.consume();
+                navigation.select(NavDestination.TASKS);
+            } else if (event.isControlDown() && event.getCode() == KeyCode.F) {
+                // Ctrl+F: Global search
+                event.consume();
+                navigation.select(NavDestination.GLOBAL_SEARCH);
+            } else if (event.isControlDown() && event.getCode() == KeyCode.COMMA) {
+                // Ctrl+, : Settings
+                event.consume();
+                navigation.select(NavDestination.SETTINGS);
+            } else if (event.getCode() == KeyCode.ESCAPE) {
+                // Escape: Close modal or cancel
+                event.consume();
+                if (modals != null && modals.isShown()) {
+                    modals.hide();
+                }
             }
         });
 
