@@ -167,6 +167,26 @@ public final class AccountStore {
         if (sessions.remove(Tokens.sha256(token)) != null) persist();
     }
 
+    /** Change a user's password after verifying the current one. */
+    public synchronized void changePassword(String userId, String oldPassword, String newPassword) {
+        User user = findById(userId)
+                .orElseThrow(() -> new AuthException("User not found.", 404));
+        if (user.passwordHash() == null || !PasswordHasher.verify(oldPassword, user.passwordHash())) {
+            throw new AuthException("Current password is incorrect.", 401);
+        }
+        validatePassword(newPassword);
+        User updated = new User(user.id(), user.email(), user.name(),
+                PasswordHasher.hash(newPassword), user.identities(), user.createdAt(), Instant.now().toString());
+        users.put(user.id(), updated);
+        persist();
+    }
+
+    /** Sign out all devices: invalidate every session for the given user. */
+    public synchronized void signOutAllDevices(String userId) {
+        sessions.entrySet().removeIf(entry -> entry.getValue().userId().equals(userId));
+        persist();
+    }
+
     public synchronized void deleteUser(String userId) {
         users.remove(userId);
         sessions.entrySet().removeIf(entry -> entry.getValue().userId().equals(userId));

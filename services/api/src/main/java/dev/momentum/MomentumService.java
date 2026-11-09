@@ -96,6 +96,20 @@ public final class MomentumService {
         accounts.deleteUser(user.id());
     }
 
+    /** Change the signed-in user's password. */
+    public void changePassword(String token, String oldPassword, String newPassword) {
+        AccountStore.User user = accounts.sessionUser(token)
+                .orElseThrow(() -> new AccountStore.AuthException("Sign in to use this feature.", 401));
+        accounts.changePassword(user.id(), oldPassword, newPassword);
+    }
+
+    /** Sign out all other devices for the signed-in user. */
+    public void signOutAllDevices(String token) {
+        AccountStore.User user = accounts.sessionUser(token)
+                .orElseThrow(() -> new AccountStore.AuthException("Sign in to use this feature.", 401));
+        accounts.signOutAllDevices(user.id());
+    }
+
     // --- Auth: OAuth ---
 
     public List<Map<String, Object>> oauthProviders() {

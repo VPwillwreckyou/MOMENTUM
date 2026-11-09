@@ -41,6 +41,9 @@ public class SettingsController implements PageView {
     private final PasswordField loginPassword = new PasswordField();
     private final Button loginButton = new Button("Sign in");
     private final Button logoutButton = new Button("Sign out");
+    private final Button managePwdButton = new Button("Manage password");
+    private final PasswordField oldPassword = new PasswordField();
+    private final PasswordField newPassword = new PasswordField();
     private final Label currentUserLabel = new Label("Not signed in.");
 
     private final ComboBox<String> aiProvider = new ComboBox<>();
@@ -147,7 +150,50 @@ public class SettingsController implements PageView {
 
         currentUserLabel.getStyleClass().add("auth-user");
 
-        VBox card = new VBox(10, title, sub, loginRow, currentUserLabel);
+        // Password change (only when signed in)
+        oldPassword.setPromptText("Current password");
+        oldPassword.setPrefWidth(220);
+        newPassword.setPromptText("New password (8+ chars, letter+digit)");
+        newPassword.setPrefWidth(260);
+        Button changePwdButton = new Button("Change password");
+        changePwdButton.getStyleClass().addAll("btn", "btn-small", "btn-ghost");
+        changePwdButton.setOnAction(event -> doChangePassword(oldPassword.getText(), newPassword.getText()));
+        oldPassword.setVisible(false);
+        newPassword.setVisible(false);
+        changePwdButton.setVisible(false);
+
+        Button signOutAllButton = new Button("Sign out all devices");
+        signOutAllButton.getStyleClass().addAll("btn", "btn-small", "btn-ghost");
+        signOutAllButton.setOnAction(event -> doSignOutAllDevices());
+        signOutAllButton.setVisible(false);
+
+        HBox pwdRow = new HBox(10, oldPassword, newPassword, changePwdButton, signOutAllButton);
+        pwdRow.setAlignment(Pos.CENTER_LEFT);
+        pwdRow.setVisible(false);
+
+        managePwdButton.getStyleClass().addAll("btn", "btn-small", "btn-ghost");
+        managePwdButton.setVisible(false);
+        managePwdButton.setManaged(false);
+        managePwdButton.setOnAction(event -> {
+            boolean show = !oldPassword.isVisible();
+            oldPassword.setVisible(show);
+            oldPassword.setManaged(show);
+            newPassword.setVisible(show);
+            newPassword.setManaged(show);
+            changePwdButton.setVisible(show);
+            changePwdButton.setManaged(show);
+            signOutAllButton.setVisible(show);
+            signOutAllButton.setManaged(show);
+            pwdRow.setVisible(show);
+            pwdRow.setManaged(show);
+        });
+
+        HBox manageRow = new HBox(10, managePwdButton);
+        manageRow.setAlignment(Pos.CENTER_LEFT);
+        manageRow.setVisible(false);
+        manageRow.setManaged(false);
+
+        VBox card = new VBox(10, title, sub, loginRow, manageRow, pwdRow, currentUserLabel);
         card.getStyleClass().add("card");
         card.setMaxWidth(Double.MAX_VALUE);
         return card;
@@ -242,6 +288,8 @@ public class SettingsController implements PageView {
         loginPassword.setVisible(!signedIn);
         loginButton.setVisible(!signedIn);
         logoutButton.setVisible(signedIn);
+        managePwdButton.setVisible(signedIn);
+        managePwdButton.setManaged(signedIn);
         if (signedIn) {
             currentUserLabel.setText("Signed in (token ends " + token.substring(Math.max(0, token.length() - 4)) + ")");
         } else {
@@ -291,6 +339,55 @@ public class SettingsController implements PageView {
             refreshAuthUI();
         }));
         new Thread(task, "auth-logout").start();
+    }
+
+    private void doChangePassword(String oldPwd, String newPwd) {
+        if (oldPwd == null || oldPwd.isBlank() || newPwd == null || newPwd.isBlank()) {
+            toasts.show("Current and new password are required.", ToastHost.Tone.ERROR);
+            return;
+        }
+        String token = host.getCurrentToken();
+        if (token == null) return;
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                host.service().changePassword(token, oldPwd, newPwd);
+                return null;
+            }
+        };
+        task.setOnSucceeded(event -> Platform.runLater(() -> {
+            toasts.show("Password changed.", ToastHost.Tone.SUCCESS);
+            oldPassword.clear();
+            newPassword.clear();
+        }));
+        task.setOnFailed(event -> Platform.runLater(() ->
+                toasts.show("Password change failed: " + task.getException().getMessage(), ToastHost.Tone.ERROR)));
+        new Thread(task, "auth-change-password").start();
+    }
+
+    private void doSignOutAllDevices() {
+        String token = host.getCurrentToken();
+        if (token == null) return;
+        modals.show("Sign out all devices?",
+                new Label("This will invalidate all sessions for your account. You will need to sign in again on each device."),
+                new ModalOverlay.Action("Sign out", ModalOverlay.Tone.DANGER, () -> {
+                    Task<Void> task = new Task<>() {
+                        @Override
+                        protected Void call() throws Exception {
+                            host.service().signOutAllDevices(token);
+                            return null;
+                        }
+                    };
+                    task.setOnSucceeded(event -> Platform.runLater(() -> {
+                        toasts.show("Signed out of all devices.", ToastHost.Tone.INFO);
+                        host.clearCurrentToken();
+                        refreshAuthUI();
+                    }));
+                    task.setOnFailed(event -> Platform.runLater(() ->
+                            toasts.show("Sign out failed: " + task.getException().getMessage(), ToastHost.Tone.ERROR)));
+                    new Thread(task, "auth-signout-all").start();
+                }),
+                new ModalOverlay.Action("Cancel", ModalOverlay.Tone.PRIMARY, modals::hide));
     }
 
     /* ---------------------------------------------------------------- AI config */
