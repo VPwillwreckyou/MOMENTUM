@@ -2,6 +2,7 @@ package dev.momentum.desktop.ui;
 
 import dev.momentum.auth.AccountStore;
 import dev.momentum.desktop.host.ServiceHost;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -63,7 +64,7 @@ public class SettingsController implements PageView {
 
         root.getStyleClass().add("page");
         root.setPadding(new Insets(0));
-        root.getChildren().addAll(header(), themeCard(), accountCard(), aiCard(), syncCard(), storageCard(), aboutCard());
+        root.getChildren().addAll(header(), themeCard(), accountCard(), aiCard(), syncCard(), storageCard(), aboutCard(), eraseCard());
 
         themeCombo.getItems().addAll(ThemeManager.PRESETS);
         themeCombo.setConverter(new javafx.util.StringConverter<>() {
@@ -259,6 +260,97 @@ public class SettingsController implements PageView {
         card.getStyleClass().add("card");
         card.setMaxWidth(Double.MAX_VALUE);
         return card;
+    }
+
+    /* ---------------------------------------------------------------- erase all local data */
+
+    private Node eraseCard() {
+        Label title = new Label("Erase all local data");
+        title.getStyleClass().add("card-title");
+        Label sub = new Label("Permanently deletes all goals, tasks, attachments, settings, and account data. "
+                + "This cannot be undone. Create a backup first.");
+        sub.getStyleClass().add("hero-sub");
+        Button eraseButton = new Button("Erase all local data");
+        eraseButton.getStyleClass().addAll("btn", "btn-danger");
+        eraseButton.setOnAction(event -> doEraseAllData());
+        VBox card = new VBox(10, title, sub, eraseButton);
+        card.getStyleClass().addAll("card", "card-danger");
+        card.setMaxWidth(Double.MAX_VALUE);
+        return card;
+    }
+
+    private void doEraseAllData() {
+        TextField confirmField = new TextField();
+        confirmField.setPromptText("Type ERASE to confirm");
+        Dialog<Boolean> dialog = new Dialog<>();
+        dialog.setTitle("Erase all local data");
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        dialog.getDialogPane().setContent(new VBox(10,
+                new Label("This will permanently delete all local data:"),
+                new Label("\u2022 All goals, tasks, milestones, and activities"),
+                new Label("\u2022 All attached files"),
+                new Label("\u2022 All settings (theme, AI config, window state)"),
+                new Label("\u2022 All account data (if signed in)"),
+                new Label(""),
+                new Label("Type ERASE below to confirm:"),
+                confirmField));
+        dialog.setResultConverter(button -> {
+            if (button == ButtonType.OK) {
+                return "ERASE".equals(confirmField.getText());
+            }
+            return null;
+        });
+        Platform.runLater(confirmField::requestFocus);
+        dialog.showAndWait().ifPresent(confirmed -> {
+            if (!confirmed) return;
+            doErase();
+        });
+    }
+
+    private void doErase() {
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                host.withRepository(repository -> {
+                    try {
+                        // Close active connections and clear data
+                        repository.purgeAllData();
+                        return null;
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+                // Clear settings
+                host.settingsPut("theme", null);
+                host.settingsPut("window_state", null);
+                host.settingsPut("ai_config", null);
+                host.settingsPut("onboarding", null);
+                host.clearCurrentToken();
+                // Clear attachments directory
+                attachmentStoreWipe();
+                return null;
+            }
+        };
+        task.setOnSucceeded(event -> Platform.runLater(() -> {
+            toasts.show("All local data erased.", ToastHost.Tone.SUCCESS);
+        }));
+        task.setOnFailed(event -> Platform.runLater(() ->
+                toasts.show("Erase failed: " + task.getException().getCause().getMessage(), ToastHost.Tone.ERROR)));
+        new Thread(task, "data-erase").start();
+    }
+
+    private void attachmentStoreWipe() {
+        try {
+            java.nio.file.Path dataDir = host.dataDirectory();
+            java.nio.file.Path attachDir = dataDir.resolve("attachments");
+            if (java.nio.file.Files.exists(attachDir)) {
+                java.nio.file.Files.walk(attachDir)
+                        .sorted(java.util.Comparator.reverseOrder())
+                        .forEach(p -> {
+                            try { java.nio.file.Files.delete(p); } catch (Exception ignored) {}
+                        });
+            }
+        } catch (Exception ignored) {}
     }
 
     /* ---------------------------------------------------------------- storage refresh */

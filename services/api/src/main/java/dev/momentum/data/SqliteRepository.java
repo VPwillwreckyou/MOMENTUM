@@ -830,4 +830,17 @@ public final class SqliteRepository implements AutoCloseable {
     private static String nowIso() {
         return Instant.now().toString();
     }
+
+    /** Purge all application data from every table. Used by Erase All Local Data. */
+    public void purgeAllData() throws SQLException {
+        try (Statement stmt = connection().createStatement()) {
+            stmt.execute("DELETE FROM activities");
+            stmt.execute("DELETE FROM attachments");
+            stmt.execute("DELETE FROM milestones");
+            stmt.execute("DELETE FROM tasks");
+            stmt.execute("DELETE FROM goals");
+            stmt.execute("DELETE FROM categories");
+            stmt.execute("DELETE FROM settings");
+        }
+    }
 }
