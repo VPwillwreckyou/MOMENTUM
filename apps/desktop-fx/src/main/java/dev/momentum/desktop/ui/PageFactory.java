@@ -51,6 +51,7 @@ public final class PageFactory {
             case CATEGORIES -> new CategoriesController(host, toasts, modals, navigation);
             case TASKS -> new TasksController(host, toasts, modals, navigation);
             case CALENDAR -> new CalendarController(host, toasts, modals, navigation);
+            case FINANCE -> new FinanceController(host, toasts, modals, navigation);
             case ARCHIVE -> new ArchiveController(host, toasts, modals, navigation);
             case TRASH -> new TrashController(host, toasts, modals, navigation);
             case AUTH -> new AuthController(host, toasts);
