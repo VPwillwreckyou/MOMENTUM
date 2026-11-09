@@ -362,6 +362,17 @@ public final class SqliteRepository implements AutoCloseable {
         }
     }
 
+    /** Change a goal's category (null removes category). */
+    public void changeGoalCategory(String goalId, String categoryId) throws SQLException {
+        try (PreparedStatement stmt = connection().prepareStatement(
+                "UPDATE goals SET category_id = ?, updated_at = ? WHERE id = ? AND deleted_at IS NULL")) {
+            stmt.setString(1, categoryId);
+            stmt.setString(2, nowIso());
+            stmt.setString(3, goalId);
+            stmt.executeUpdate();
+        }
+    }
+
     // ---------------------------------------------------------------- category queries
 
     /** All non-trashed categories, name ascending. */
