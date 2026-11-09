@@ -6,11 +6,13 @@ import dev.momentum.desktop.ui.ShellController;
 import dev.momentum.desktop.util.Logger;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -66,7 +68,21 @@ public class MomentumApp extends Application {
         stage.minHeightProperty().setValue(680);
         stage.setScene(scene);
         stage.setResizable(true);
-        stage.centerOnScreen();
+
+        // Restore window state from settings (Phase 6.10: Window Management)
+        restoreWindowState(stage);
+
+        // Save window state whenever it changes
+        stage.widthProperty().addListener((obs, old, neww) -> saveWindowState(stage));
+        stage.heightProperty().addListener((obs, old, newh) -> saveWindowState(stage));
+        stage.xProperty().addListener((obs, old, neww) -> saveWindowState(stage));
+        stage.yProperty().addListener((obs, old, newh) -> saveWindowState(stage));
+        stage.maximizedProperty().addListener((obs, old, neww) -> saveWindowState(stage));
+
+        stage.setOnCloseRequest(event -> saveWindowState(stage));
+
+        stage.show();
+
         // Add application icon to the window frame and taskbar.
         try {
             stage.getIcons().add(new javafx.scene.image.Image(
@@ -75,7 +91,6 @@ public class MomentumApp extends Application {
         } catch (Exception e) {
             System.err.println("MOMENTUM: Could not load application icon: " + e.getMessage());
         }
-        stage.show();
 
         // One-shot interstitial: the shell is alive.
         if (activeController.toasts != null) {
@@ -98,6 +113,70 @@ public class MomentumApp extends Application {
         }
         if (showOnboarding) {
             activeController.navigate(NavDestination.ONBOARDING);
+        }
+    }
+
+    /** Restore window size, position, and maximized state from persisted settings. */
+    private void restoreWindowState(Stage stage) {
+        try {
+            String json = host.settingsGet("window_state").orElse(null);
+            if (json == null) {
+                stage.centerOnScreen();
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> state = dev.momentum.core.Json.parseObject(json);
+            double width = asDouble(state.get("width"), 1280);
+            double height = asDouble(state.get("height"), 800);
+            double x = asDouble(state.get("x"), -1);
+            double y = asDouble(state.get("y"), -1);
+            boolean maximized = Boolean.TRUE.equals(state.get("maximized"));
+
+            // Validate against screen bounds (Phase 6.10: screen-boundary validation)
+            Screen screen = Screen.getPrimary();
+            double screenW = screen.getVisualBounds().getWidth();
+            double screenH = screen.getVisualBounds().getHeight();
+
+            stage.setWidth(Math.max(stage.getMinWidth(), Math.min(width, screenW)));
+            stage.setHeight(Math.max(stage.getMinHeight(), Math.min(height, screenH)));
+
+            if (x >= 0 && y >= 0 && x + width <= screenW && y + height <= screenH) {
+                stage.setX(x);
+                stage.setY(y);
+            } else {
+                stage.centerOnScreen();
+            }
+
+            if (maximized) {
+                stage.setMaximized(true);
+            }
+        } catch (Exception e) {
+            Logger.warn("Could not restore window state: " + e.getMessage());
+            stage.centerOnScreen();
+        }
+    }
+
+    /** Save current window state to settings (Phase 6.10: Window Management). */
+    private void saveWindowState(Stage stage) {
+        try {
+            Map<String, Object> state = new LinkedHashMap<>();
+            state.put("width", stage.getWidth());
+            state.put("height", stage.getHeight());
+            state.put("x", stage.getX());
+            state.put("y", stage.getY());
+            state.put("maximized", stage.isMaximized());
+            host.settingsPut("window_state", dev.momentum.core.Json.stringify(state));
+        } catch (Exception e) {
+            Logger.warn("Could not save window state: " + e.getMessage());
+        }
+    }
+
+    private static double asDouble(Object v, double def) {
+        if (v == null) return def;
+        try {
+            return Double.parseDouble(String.valueOf(v));
+        } catch (NumberFormatException e) {
+            return def;
         }
     }
 
