@@ -532,6 +532,31 @@ public final class SqliteRepository implements AutoCloseable {
         return rows;
     }
 
+    /** All attachments for a given goal. */
+    public Map<String, Object[]> listAttachments(String goalId) throws SQLException {
+        Map<String, Object[]> rows = new LinkedHashMap<>();
+        try (PreparedStatement stmt = connection().prepareStatement(
+                "SELECT id, goal_id, name, mime_type, size, file_path, created_at FROM attachments WHERE goal_id = ? ORDER BY created_at")) {
+            stmt.setString(1, goalId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    rows.put(rs.getString(1), new Object[] {
+                            rs.getString(2), rs.getString(3), rs.getString(4), rs.getLong(5), rs.getString(6), rs.getString(7) });
+                }
+            }
+        }
+        return rows;
+    }
+
+    /** Delete an attachment row by ID. */
+    public void deleteAttachment(String attachmentId) throws SQLException {
+        try (PreparedStatement stmt = connection().prepareStatement(
+                "DELETE FROM attachments WHERE id = ?")) {
+            stmt.setString(1, attachmentId);
+            stmt.executeUpdate();
+        }
+    }
+
     /** Orphaned child rows, if any (children whose goal no longer exists). */
     public long orphanedChildren() throws SQLException {
         try (Statement stmt = connection().createStatement();

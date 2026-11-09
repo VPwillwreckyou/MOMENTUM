@@ -1,7 +1,10 @@
 package dev.momentum.desktop.ui;
 
 import dev.momentum.desktop.host.ServiceHost;
-import dev.momentum.desktop.ui.ThemeManager;
+import dev.momentum.data.AttachmentStore;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -9,6 +12,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -17,11 +21,14 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
 /**
  * Goal detail screen: goal header (status chip, category, dates), milestones
- * with completion toggles, tasks list, and actions (edit / archive / trash).
- * Everything reads from / writes to the real SQLite database.
+ * with completion toggles, tasks list, attachments, and actions (edit /
+ * archive / trash). Everything reads from / writes to the real SQLite
+ * database.
  */
 public class GoalDetailController implements PageView {
 
@@ -31,6 +38,7 @@ public class GoalDetailController implements PageView {
     private final ToastHost toasts;
     private final ModalOverlay modals;
     private final NavigationManager navigation;
+    private final AttachmentStore attachmentStore;
 
     private final VBox root = new VBox(16);
     private final AtomicReference<Map<String, Object>> goal = new AtomicReference<>(null);
@@ -41,6 +49,7 @@ public class GoalDetailController implements PageView {
     private final Label notesLabel = new Label();
     private final ListView<Map<String, Object>> milestonesList = new ListView<>();
     private final ListView<Map<String, Object>> tasksList = new ListView<>();
+    private final ListView<Map<String, Object>> attachmentsList = new ListView<>();
 
     public GoalDetailController(ServiceHost host, ThemeManager themes, ToastHost toasts,
                                 ModalOverlay modals, NavigationManager navigation) {
@@ -48,6 +57,7 @@ public class GoalDetailController implements PageView {
         this.toasts = toasts;
         this.modals = modals;
         this.navigation = navigation;
+        this.attachmentStore = new AttachmentStore(host.dataDirectory());
 
         root.getStyleClass().add("page");
         root.setPadding(new Insets(0));
@@ -57,6 +67,8 @@ public class GoalDetailController implements PageView {
         milestonesList.setCellFactory(l -> new MilestoneCell());
         tasksList.getStyleClass().add("task-list");
         tasksList.setCellFactory(l -> new TaskCell());
+        attachmentsList.getStyleClass().add("goal-list");
+        attachmentsList.setCellFactory(l -> new AttachmentCell());
     }
 
     @Override
@@ -114,6 +126,27 @@ public class GoalDetailController implements PageView {
         VBox card = new VBox(10, new HBox(10, title, statusChip), meta, actions, notesLabel);
         card.getStyleClass().add("card");
         card.setMaxWidth(Double.MAX_VALUE);
+
+        Label attachmentsTitle = new Label("Attachments");
+        attachmentsTitle.getStyleClass().add("card-title");
+        attachmentsList.getStyleClass().add("goal-list");
+        attachmentsList.setCellFactory(l -> new AttachmentCell());
+        attachmentsList.setPrefHeight(120);
+        VBox attachmentsSection = new VBox(8, attachmentsTitle, attachmentsList);
+        attachmentsSection.getStyleClass().add("card");
+
+        Button addAttachment = new Button("Add attachment");
+        addAttachment.getStyleClass().addAll("btn", "btn-small", "btn-ghost");
+        addAttachment.setOnAction(event -> addAttachment());
+
+        HBox attachmentsHeader = new HBox(8, attachmentsTitle, addAttachment);
+        attachmentsHeader.setAlignment(Pos.CENTER_LEFT);
+
+        VBox attachmentsPanel = new VBox(8, attachmentsHeader, attachmentsList);
+        attachmentsPanel.getStyleClass().add("card");
+
+        card.getChildren().addAll(new HBox(10, title, statusChip), meta, actions, notesLabel, attachmentsPanel);
+        card.setMaxWidth(Double.MAX_VALUE);
         return card;
     }
 
@@ -149,6 +182,21 @@ public class GoalDetailController implements PageView {
                         List<Map<String, Object>> ts = repository.listTasks(goalId, null);
                         milestonesList.getItems().setAll(ms);
                         tasksList.getItems().setAll(ts);
+                        Map<String, Object[]> attsMap = repository.listAttachments(goalId);
+                        List<Map<String, Object>> atts = new ArrayList<>();
+                        for (Map.Entry<String, Object[]> e : attsMap.entrySet()) {
+                            Map<String, Object> att = new LinkedHashMap<>();
+                            att.put("id", e.getKey());
+                            Object[] arr = e.getValue();
+                            att.put("goalId", arr[0]);
+                            att.put("name", arr[1]);
+                            att.put("mimeType", arr[2]);
+                            att.put("size", arr[3]);
+                            att.put("file_path", arr[4]);
+                            att.put("createdAt", arr[5]);
+                            atts.add(att);
+                        }
+                        attachmentsList.getItems().setAll(atts);
                     } catch (SQLException e) {
                         throw new RuntimeException(e);
                     }
@@ -267,25 +315,50 @@ public class GoalDetailController implements PageView {
                 new ModalOverlay.Action("Cancel", ModalOverlay.Tone.PRIMARY, modals::hide));
     }
 
-    /* ---------------------------------------------------------------- helpers */
+    /* ---------------------------------------------------------------- attachment */
 
-    private static String capitalize(String value) {
-        if (value == null || value.isEmpty()) return value;
-        return Character.toUpperCase(value.charAt(0)) + value.substring(1);
-    }
+    private void addAttachment() {
+        Map<String, Object> g = goal.get();
+        if (g == null) return;
+        String goalId = String.valueOf(g.get("id"));
 
-    private static String formatDate(String iso) {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Attach file to goal");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("All files", "*.*"));
+        Stage owner = (Stage) root.getScene().getWindow();
+        File file = chooser.showOpenDialog(owner);
+        if (file == null) return;
+
         try {
-            return java.time.Instant.parse(iso)
-                    .atZone(java.time.ZoneId.systemDefault()).toLocalDate().format(DAY);
+            byte[] bytes = java.nio.file.Files.readAllBytes(file.toPath());
+            String id = UUID.randomUUID().toString();
+            String relativePath = attachmentStore.save(id, file.getName(), bytes);
+            String detectedMimeType = java.nio.file.Files.probeContentType(file.toPath());
+            final String mimeType = detectedMimeType != null ? detectedMimeType : "application/octet-stream";
+
+            host.withRepository(repository -> {
+                try {
+                    repository.insertAttachment(goalId, id, file.getName(),
+                            mimeType, file.length(), relativePath, Instant.now().toString());
+                    repository.recordActivity("attachment-added", goalId, id, "Added attachment");
+                    return null;
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            toasts.show("Attachment added", ToastHost.Tone.SUCCESS);
+            loadGoal(goalId);
         } catch (Exception e) {
-            return iso;
+            toasts.show("Could not attach file: " + e.getCause().getMessage(), ToastHost.Tone.ERROR);
         }
     }
 
-    private static String valueOr(Map<String, Object> map, String key, String def) {
-        Object v = map.get(key);
-        return v == null ? def : String.valueOf(v);
+    private String formatFileSize(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        int exp = (int) (Math.log(bytes) / Math.log(1024));
+        String pre = String.valueOf("KMGTPE".charAt(exp - 1));
+        return String.format("%.1f %sB", bytes / Math.pow(1024, exp), pre);
     }
 
     /* ---------------------------------------------------------------- cells */
@@ -295,6 +368,7 @@ public class GoalDetailController implements PageView {
         private final Label title = new Label();
         private final Label due = new Label();
         private final Button delete = new Button("Delete");
+        private final HBox row = new HBox(10, completed, title, due, delete);
 
         private MilestoneCell() {
             completed.getStyleClass().add("milestone-check");
@@ -302,7 +376,6 @@ public class GoalDetailController implements PageView {
             due.getStyleClass().add("milestone-due");
             delete.getStyleClass().addAll("btn", "btn-small", "btn-ghost", "btn-danger");
 
-            HBox row = new HBox(10, completed, title, due, delete);
             row.setAlignment(Pos.CENTER_LEFT);
             HBox.setHgrow(title, Priority.ALWAYS);
             row.getStyleClass().add("milestone-row");
@@ -328,6 +401,7 @@ public class GoalDetailController implements PageView {
             due.setText(dueDate.isBlank() ? "\u2014" : formatDate(dueDate));
             delete.setUserData(id);
             setText(null);
+            setGraphic(row);
             setOpacity(completed.isSelected() ? 0.55 : 1.0);
         }
 
@@ -398,6 +472,7 @@ public class GoalDetailController implements PageView {
         private final Label title = new Label();
         private final Label due = new Label();
         private final Button delete = new Button("Delete");
+        private final HBox row = new HBox(10, completed, title, due, delete);
 
         private TaskCell() {
             completed.getStyleClass().add("task-check");
@@ -405,7 +480,6 @@ public class GoalDetailController implements PageView {
             due.getStyleClass().add("task-due");
             delete.getStyleClass().addAll("btn", "btn-small", "btn-ghost", "btn-danger");
 
-            HBox row = new HBox(10, completed, title, due, delete);
             row.setAlignment(Pos.CENTER_LEFT);
             HBox.setHgrow(title, Priority.ALWAYS);
             row.getStyleClass().add("task-row");
@@ -430,6 +504,8 @@ public class GoalDetailController implements PageView {
             String dueDate = valueOr(t, "dueDate", "");
             due.setText(dueDate.isBlank() ? "\u2014" : formatDate(dueDate));
             delete.setUserData(id);
+            setText(null);
+            setGraphic(row);
             setOpacity(completed.isSelected() ? 0.55 : 1.0);
         }
 
@@ -495,4 +571,118 @@ public class GoalDetailController implements PageView {
             return null;
         }
     }
+
+    private final class AttachmentCell extends ListCell<Map<String, Object>> {
+        private final Label nameLabel = new Label();
+        private final Label infoLabel = new Label();
+        private final Button openButton = new Button("Open");
+        private final Button deleteButton = new Button("Delete");
+        private final HBox row = new HBox(10, nameLabel, infoLabel, openButton, deleteButton);
+
+        private AttachmentCell() {
+            nameLabel.getStyleClass().add("task-title");
+            infoLabel.getStyleClass().add("task-meta");
+            openButton.getStyleClass().addAll("btn", "btn-small", "btn-ghost");
+            deleteButton.getStyleClass().addAll("btn", "btn-small", "btn-ghost", "btn-danger");
+
+            row.setAlignment(Pos.CENTER_LEFT);
+            HBox.setHgrow(nameLabel, Priority.ALWAYS);
+            row.getStyleClass().add("task-row");
+
+            openButton.setOnAction(event -> openAttachment(getItem()));
+            deleteButton.setOnAction(event -> deleteAttachment(getItem()));
+            setGraphic(row);
+        }
+
+        @Override
+        protected void updateItem(Map<String, Object> a, boolean empty) {
+            super.updateItem(a, empty);
+            if (empty || a == null) {
+                setText(null);
+                setGraphic(null);
+                return;
+            }
+            String id = String.valueOf(a.get("id"));
+            nameLabel.setText(valueOr(a, "name", "Untitled"));
+            String sizeStr = valueOr(a, "size", "0");
+            long sizeBytes = 0;
+            try {
+                sizeBytes = Long.parseLong(sizeStr);
+            } catch (NumberFormatException ignored) {}
+            infoLabel.setText(valueOr(a, "mimeType", "") + "  \u2022  " + formatFileSize(sizeBytes));
+            deleteButton.setUserData(id);
+            setText(null);
+            setGraphic(row);
+        }
+
+        private void openAttachment(Map<String, Object> a) {
+            String id = String.valueOf(a.get("id"));
+            String relPath = valueOr(a, "file_path", "");
+            if (relPath.isEmpty()) return;
+            try {
+                Path filePath = attachmentStore.resolveRelative(relPath);
+                if (filePath.toFile().exists()) {
+                    java.awt.Desktop.getDesktop().open(filePath.toFile());
+                } else {
+                    toasts.show("Attachment file not found", ToastHost.Tone.ERROR);
+                }
+            } catch (Exception e) {
+                toasts.show("Could not open attachment: " + e.getMessage(), ToastHost.Tone.ERROR);
+            }
+        }
+
+        private void deleteAttachment(Map<String, Object> a) {
+            String id = String.valueOf(a.get("id"));
+            String relPath = valueOr(a, "file_path", "");
+            modals.show("Delete attachment?",
+                    new Label("Delete attachment \u201c" + valueOr(a, "name", "this file") + "\u201d?"),
+                    new ModalOverlay.Action("Delete", ModalOverlay.Tone.DANGER, () -> {
+                        try {
+                            try {
+                                attachmentStore.delete(relPath);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                            host.withRepository(repository -> {
+                                try {
+                                    repository.deleteAttachment(id);
+                                    repository.recordActivity("attachment-deleted",
+                                            String.valueOf(a.get("goalId")), id, "Deleted attachment");
+                                    return null;
+                                } catch (SQLException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            });
+                            toasts.show("Attachment deleted", ToastHost.Tone.SUCCESS);
+                            loadGoal(String.valueOf(a.get("goalId")));
+                        } catch (RuntimeException e) {
+                            toasts.show("Could not delete attachment: " + e.getCause().getMessage(),
+                                    ToastHost.Tone.ERROR);
+                        }
+                    }),
+                    new ModalOverlay.Action("Cancel", ModalOverlay.Tone.PRIMARY, modals::hide));
+        }
+    }
+
+    /* ---------------------------------------------------------------- helpers */
+
+    private static String capitalize(String value) {
+        if (value == null || value.isEmpty()) return value;
+        return Character.toUpperCase(value.charAt(0)) + value.substring(1);
+    }
+
+    private static String formatDate(String iso) {
+        try {
+            return java.time.Instant.parse(iso)
+                    .atZone(java.time.ZoneId.systemDefault()).toLocalDate().format(DAY);
+        } catch (Exception e) {
+            return iso;
+        }
+    }
+
+    private static String valueOr(Map<String, Object> map, String key, String def) {
+        Object v = map.get(key);
+        return v == null ? def : String.valueOf(v);
+    }
+
 }
