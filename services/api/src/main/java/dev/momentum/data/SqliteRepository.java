@@ -485,6 +485,37 @@ public final class SqliteRepository implements AutoCloseable {
         }
     }
 
+    /** List activities, newest first. Optional goalId filter. */
+    public List<Map<String, Object>> listActivities(String goalId) throws SQLException {
+        StringBuilder sql = new StringBuilder(
+                "SELECT id, type, goal_id, task_id, message, created_at FROM activities");
+        List<Object> params = new ArrayList<>();
+        if (goalId != null) {
+            sql.append(" WHERE goal_id = ?");
+            params.add(goalId);
+        }
+        sql.append(" ORDER BY created_at DESC");
+        try (PreparedStatement stmt = connection().prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                stmt.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<Map<String, Object>> activities = new ArrayList<>();
+                while (rs.next()) {
+                    Map<String, Object> a = new LinkedHashMap<>();
+                    a.put("id", rs.getString("id"));
+                    a.put("type", rs.getString("type"));
+                    a.put("goalId", rs.getString("goal_id"));
+                    a.put("taskId", rs.getString("task_id"));
+                    a.put("message", rs.getString("message"));
+                    a.put("createdAt", rs.getString("created_at"));
+                    activities.add(a);
+                }
+                return activities;
+            }
+        }
+    }
+
     // ---------------------------------------------------------------- validation helpers
 
     /** Row count of a whitelisted table. */
