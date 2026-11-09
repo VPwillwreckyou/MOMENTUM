@@ -123,7 +123,7 @@ public class GoalDetailController implements PageView {
         HBox actions = new HBox(8, complete, reopen, archive, trash);
         actions.setAlignment(Pos.CENTER_LEFT);
 
-        VBox card = new VBox(10, new HBox(10, title, statusChip), meta, actions, notesLabel);
+        VBox card = new VBox(10);
         card.getStyleClass().add("card");
         card.setMaxWidth(Double.MAX_VALUE);
 
@@ -146,7 +146,6 @@ public class GoalDetailController implements PageView {
         attachmentsPanel.getStyleClass().add("card");
 
         card.getChildren().addAll(new HBox(10, title, statusChip), meta, actions, notesLabel, attachmentsPanel);
-        card.setMaxWidth(Double.MAX_VALUE);
         return card;
     }
 
