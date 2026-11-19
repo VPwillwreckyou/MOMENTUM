@@ -38,8 +38,14 @@ jobs:
           javac --release 21 -encoding UTF-8 -d services/api/build/classes @/tmp/sources.txt
           printf 'Manifest-Version: 1.0\nMain-Class: dev.momentum.MomentumServer\nImplementation-Title: MOMENTUM API\nImplementation-Version: 1.0.0\n' > services/api/build/manifest.txt
           jar --create --file services/api/build/momentum-api.jar --manifest services/api/build/manifest.txt -C services/api/build/classes .
+      - name: Download runtime dependencies
+        run: |
+          mkdir -p services/api/lib
+          curl --fail --silent --show-error --location https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.45.1.0/sqlite-jdbc-3.45.1.0.jar -o services/api/lib/sqlite-jdbc.jar
+          curl --fail --silent --show-error --location https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar -o services/api/lib/slf4j-api.jar
       - name: Compile and run Java tests
         run: |
           find services/api/src/test/java -name '*.java' > /tmp/test-sources.txt
-          javac --release 21 -encoding UTF-8 -cp services/api/build/classes -d services/api/build/test-classes @/tmp/test-sources.txt
-          java -ea -cp 'services/api/build/classes:services/api/build/test-classes' dev.momentum.TestRunner
+          TEST_CP="services/api/build/classes:services/api/lib/sqlite-jdbc.jar:services/api/lib/slf4j-api.jar"
+          javac --release 21 -encoding UTF-8 -cp "$TEST_CP" -d services/api/build/test-classes @/tmp/test-sources.txt
+          java -ea -cp "$TEST_CP:services/api/build/test-classes" dev.momentum.TestRunner
