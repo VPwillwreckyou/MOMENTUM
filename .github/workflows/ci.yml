@@ -41,8 +41,8 @@ jobs:
       - name: Download runtime dependencies
         run: |
           mkdir -p services/api/lib
-          curl --fail --silent --show-error --location https://repo1.maven.org/maven2/org/xerial/sqlite-jdbc/3.45.1.0/sqlite-jdbc-3.45.1.0.jar -o services/api/lib/sqlite-jdbc.jar
-          curl --fail --silent --show-error --location https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar -o services/api/lib/slf4j-api.jar
+          curl --fail --silent --show-error --location https://repo.maven.apache.org/maven2/org/xerial/sqlite-jdbc/3.45.1.0/sqlite-jdbc-3.45.1.0.jar -o services/api/lib/sqlite-jdbc.jar
+          curl --fail --silent --show-error --location https://repo.maven.apache.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar -o services/api/lib/slf4j-api.jar
       - name: Compile and run Java tests
         run: |
           find services/api/src/test/java -name '*.java' > /tmp/test-sources.txt
