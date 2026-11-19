@@ -219,7 +219,10 @@ final class DataMigrationTest {
     static void backupRetentionPolicy() throws Exception {
         Path temp = Files.createTempDirectory("momentum-migration-bak-");
         try {
-            Files.write(temp.resolve("momentum.db"), new byte[] {1, 2, 3, 4});
+            // BackupManager checkpoints the WAL, so the fixture must be a valid SQLite database.
+            try (Database database = new Database(temp.toString())) {
+                database.connection();
+            }
             BackupManager manager = new BackupManager(temp);
             for (int index = 0; index < 7; index++) {
                 String name = manager.backup();
