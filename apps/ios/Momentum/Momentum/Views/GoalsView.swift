@@ -43,7 +43,10 @@ struct GoalsView: View {
         switch sort {
         case .priority: items.sort { $0.priority.rank < $1.priority.rank }
         case .deadline: items.sort { ($0.deadline ?? "9999") < ($1.deadline ?? "9999") }
-        case .progress: items.sort { goalPercent($0) > goalPercent($1) }
+        case .progress:
+            // Compute each score once; sort comparators may be called many times per goal.
+            let scoredItems = items.map { (goal: $0, percent: goalPercent($0)) }
+            return scoredItems.sorted { $0.percent > $1.percent }.map(\.goal)
         case .recent: items.sort { $0.updatedAt > $1.updatedAt }
         case .title: items.sort { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
         }

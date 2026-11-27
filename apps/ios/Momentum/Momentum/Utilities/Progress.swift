@@ -11,8 +11,14 @@ func goalPercent(_ goal: Goal) -> Int {
 
     let allTasks = goal.tasks
     let allMilestones = goal.milestones
-    let taskPercent = allTasks.isEmpty ? 0 : Int(round(Double(allTasks.filter(\.completed).count) / Double(allTasks.count) * 100))
-    let milestonePercent = allMilestones.isEmpty ? 0 : Int(round(Double(allMilestones.filter(\.completed).count) / Double(allMilestones.count) * 100))
+    let completedTasks = allTasks.reduce(into: 0) { count, task in
+        if task.completed { count += 1 }
+    }
+    let completedMilestones = allMilestones.reduce(into: 0) { count, milestone in
+        if milestone.completed { count += 1 }
+    }
+    let taskPercent = allTasks.isEmpty ? 0 : Int(round(Double(completedTasks) / Double(allTasks.count) * 100))
+    let milestonePercent = allMilestones.isEmpty ? 0 : Int(round(Double(completedMilestones) / Double(allMilestones.count) * 100))
 
     if !allTasks.isEmpty && !allMilestones.isEmpty {
         return Int(round(Double(taskPercent) * 0.65 + Double(milestonePercent) * 0.35))
@@ -130,9 +136,10 @@ func momentumCaption(_ score: Int) -> String {
 func completionSeries(_ goals: [Goal], days: Int = 7, now: Date = Date()) -> [(label: String, count: Int)] {
     let calendar = Calendar.current
     let today = calendar.startOfDay(for: now)
-    let completions = goals.flatMap(\.tasks).compactMap { task -> Date? in
-        guard task.completed else { return nil }
-        return task.completedAt.flatMap(parseTimestamp).map { calendar.startOfDay(for: $0) }
+    var countsByDay: [String: Int] = [:]
+    for task in goals.lazy.flatMap(\.tasks) where task.completed {
+        guard let completedAt = task.completedAt.flatMap(parseTimestamp) else { continue }
+        countsByDay[dateOnlyString(calendar.startOfDay(for: completedAt)), default: 0] += 1
     }
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -141,7 +148,7 @@ func completionSeries(_ goals: [Goal], days: Int = 7, now: Date = Date()) -> [(l
     return (0..<days).reversed().compactMap { offset in
         guard let date = calendar.date(byAdding: .day, value: -offset, to: today) else { return nil }
         let key = dateOnlyString(date)
-        return (formatter.string(from: date), completions.filter { dateOnlyString($0) == key }.count)
+        return (formatter.string(from: date), countsByDay[key, default: 0])
     }
 }
 

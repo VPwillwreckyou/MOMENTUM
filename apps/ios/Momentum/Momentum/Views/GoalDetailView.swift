@@ -180,7 +180,20 @@ struct GoalDetailView: View {
     }
 
     private func planSection(_ goal: Goal) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
+        var tasksByMilestone: [String: [GoalTask]] = [:]
+        var standalone: [GoalTask] = []
+        var incompleteCount = 0
+        for task in goal.tasks {
+            if !task.completed { incompleteCount += 1 }
+            guard task.parentTaskId == nil, showingCompleted || !task.completed else { continue }
+            if let milestoneID = task.milestoneId {
+                tasksByMilestone[milestoneID, default: []].append(task)
+            } else {
+                standalone.append(task)
+            }
+        }
+
+        return VStack(alignment: .leading, spacing: 16) {
             if !goal.milestones.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
                     SectionHeader(title: "Milestones")
@@ -207,7 +220,7 @@ struct GoalDetailView: View {
                             if let due = deadlineLabel(milestone.dueDate) {
                                 Text(due).font(.caption).foregroundStyle(AppTheme.tertiaryText).padding(.leading, 30)
                             }
-                            ForEach(goal.tasks.filter { $0.milestoneId == milestone.id && $0.parentTaskId == nil && (showingCompleted || !$0.completed) }) { task in
+                            ForEach(tasksByMilestone[milestone.id] ?? []) { task in
                                 TaskBranchView(
                                     goal: goal, task: task, level: 1,
                                     showingCompleted: showingCompleted
@@ -225,7 +238,6 @@ struct GoalDetailView: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 SectionHeader(title: "Tasks without a milestone")
-                let standalone = goal.tasks.filter { $0.milestoneId == nil && $0.parentTaskId == nil && (showingCompleted || !$0.completed) }
                 if standalone.isEmpty {
                     Text("No standalone tasks.").font(.subheadline).foregroundStyle(AppTheme.tertiaryText)
                 }
@@ -241,10 +253,9 @@ struct GoalDetailView: View {
                 .buttonStyle(.bordered)
             }
 
-            let hiddenCount = goal.tasks.filter { !$0.completed }.count
-            if hiddenCount < goal.tasks.count || showingCompleted {
+            if incompleteCount < goal.tasks.count || showingCompleted {
                 Button { showingCompleted.toggle() } label: {
-                    Text(showingCompleted ? "Hide completed" : "Show \(goal.tasks.count - hiddenCount) completed")
+                    Text(showingCompleted ? "Hide completed" : "Show \(goal.tasks.count - incompleteCount) completed")
                         .font(.subheadline)
                 }
             }
