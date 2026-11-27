@@ -6,7 +6,6 @@ import { AppShell } from './components/layout/AppShell';
 import { DashboardPage } from './pages/DashboardPage';
 import { GoalsPage } from './pages/GoalsPage';
 import { GoalDetailPage } from './pages/GoalDetailPage';
-import { PlannerPage } from './pages/PlannerPage';
 import { CategoriesPage } from './pages/CategoriesPage';
 import { ArchivePage } from './pages/ArchivePage';
 import { TrashPage } from './pages/TrashPage';
@@ -39,7 +38,6 @@ function Application() {
           <Route index element={<DashboardPage />} />
           <Route path="goals" element={<GoalsPage />} />
           <Route path="goals/:goalId" element={<GoalDetailPage />} />
-          <Route path="planner" element={<PlannerPage />} />
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="archive" element={<ArchivePage />} />
           <Route path="trash" element={<TrashPage />} />

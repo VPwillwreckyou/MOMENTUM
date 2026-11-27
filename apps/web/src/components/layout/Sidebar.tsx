@@ -1,15 +1,12 @@
 import { NavLink, Link } from 'react-router-dom';
 import {
   Archive,
-  ArrowUpRight,
-  Bot,
   Boxes,
   Command,
   Goal,
   LayoutDashboard,
   Plus,
   Settings,
-  Sparkles,
   Trash2,
   UserRound,
 } from 'lucide-react';
@@ -17,12 +14,10 @@ import { Logo } from '../ui/Logo';
 import { useAppShell } from './AppShellContext';
 import { useMomentum } from '../../state/MomentumContext';
 import { useAuth } from '../../state/AuthContext';
-import { AI_PROVIDER_LOCK, PROVIDER_DEFAULTS } from '../../lib/defaults';
 
 const primaryNav = [
   { to: '/', label: 'Overview', icon: LayoutDashboard, end: true },
   { to: '/goals', label: 'Goals', icon: Goal },
-  { to: '/planner', label: 'Goal architect', icon: Sparkles, badge: 'AI' },
   { to: '/categories', label: 'Categories', icon: Boxes },
 ];
 
@@ -33,10 +28,9 @@ const secondaryNav = [
 
 export function Sidebar() {
   const { openNewGoal } = useAppShell();
-  const { goals, settings, categories } = useMomentum();
+  const { goals, categories } = useMomentum();
   const { user } = useAuth();
   const activeGoals = goals.filter((goal) => !goal.deletedAt && !goal.archivedAt && goal.status === 'active').length;
-  const aiReady = Boolean(settings.ai.hasKey || settings.ai.provider === 'ollama' || AI_PROVIDER_LOCK);
 
   return (
     <aside className="sidebar">
@@ -66,7 +60,6 @@ export function Sidebar() {
           >
             <item.icon size={17} strokeWidth={1.9} />
             <span>{item.label}</span>
-            {item.badge ? <span className="nav-item__badge">{item.badge}</span> : null}
           </NavLink>
         ))}
         <div className="sidebar__counts">
@@ -88,21 +81,6 @@ export function Sidebar() {
       </nav>
 
       <div className="sidebar__footer">
-        <Link to="/settings#ai" className={`copilot-card${aiReady ? ' copilot-card--ready' : ''}`}>
-          <span className="copilot-card__icon">
-            <Bot size={18} />
-          </span>
-          <span className="copilot-card__copy">
-            <strong>{aiReady ? 'AI copilot online' : 'Connect an AI copilot'}</strong>
-            <span>
-              {aiReady
-                ? PROVIDER_DEFAULTS[settings.ai.provider].label
-                : 'Bring your own provider'}
-            </span>
-          </span>
-          <ArrowUpRight size={15} className="copilot-card__arrow" />
-        </Link>
-
         <div className="sidebar__account">
           <Link to={user ? '/settings#account' : '/auth'} className="account-chip">
             <span className="account-chip__avatar">

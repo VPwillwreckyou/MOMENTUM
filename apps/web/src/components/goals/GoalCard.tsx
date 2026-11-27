@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, CalendarClock, Check, Repeat2, Sparkles } from 'lucide-react';
+import { ArrowUpRight, CalendarClock, Check, Repeat2 } from 'lucide-react';
 import type { Category, Goal } from '../../state/types';
 import { computeGoalProgress, nextActionableTask } from '../../lib/progress';
 import { deadlineLabel, isOverdue } from '../../lib/dates';
@@ -45,12 +45,6 @@ export function GoalCard({
               <span className="meta-chip">
                 <Repeat2 size={12} />
                 {recurrenceLabel(goal.recurrence)}
-              </span>
-            ) : null}
-            {goal.aiGenerated ? (
-              <span className="meta-chip meta-chip--accent">
-                <Sparkles size={12} />
-                AI draft
               </span>
             ) : null}
           </div>

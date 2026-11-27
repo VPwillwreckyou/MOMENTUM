@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CalendarDays, Coins, Repeat2, Sparkles } from 'lucide-react';
+import { CalendarDays, Coins, ListChecks, Repeat2 } from 'lucide-react';
 import type { CategoryIcon, Goal, GoalDraft, Priority } from '../../state/types';
 import { useMomentum } from '../../state/MomentumContext';
 import { Button } from '../ui/Button';
@@ -427,8 +427,8 @@ export function GoalForm({ open, onClose, goal, onCreated }: GoalFormProps) {
           ) : null}
           {!isEditing ? (
             <div className="form-hint-strip form-hint-strip--accent">
-              <Sparkles size={15} />
-              <span>Want a structured plan? Use the Goal Architect after creating it.</span>
+              <ListChecks size={15} />
+              <span>Add milestones and tasks as your goal takes shape.</span>
             </div>
           ) : null}
         </div>

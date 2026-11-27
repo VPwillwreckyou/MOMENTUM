@@ -45,12 +45,6 @@
       "description": "Create a new goal"
     },
     {
-      "name": "Goal Architect",
-      "short_name": "AI plan",
-      "url": "/planner",
-      "description": "Build a plan with AI assistance"
-    },
-    {
       "name": "Overview",
       "short_name": "Overview",
       "url": "/",

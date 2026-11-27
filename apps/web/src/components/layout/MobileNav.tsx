@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Goal, LayoutDashboard, Plus, Settings, Sparkles } from 'lucide-react';
+import { Boxes, Goal, LayoutDashboard, Plus, Settings } from 'lucide-react';
 import { useAppShell } from './AppShellContext';
 
 export function MobileNav() {
@@ -17,9 +17,9 @@ export function MobileNav() {
       <button type="button" className="mobile-nav__add" onClick={openNewGoal} aria-label="Create a new goal">
         <Plus size={23} />
       </button>
-      <NavLink to="/planner" className={({ isActive }) => `mobile-nav__item${isActive ? ' is-active' : ''}`}>
-        <Sparkles size={19} />
-        <span>Architect</span>
+      <NavLink to="/categories" className={({ isActive }) => `mobile-nav__item${isActive ? ' is-active' : ''}`}>
+        <Boxes size={19} />
+        <span>Categories</span>
       </NavLink>
       <NavLink to="/settings" className={({ isActive }) => `mobile-nav__item${isActive ? ' is-active' : ''}`}>
         <Settings size={19} />
