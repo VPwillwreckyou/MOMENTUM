@@ -29,7 +29,7 @@
     "restart": "npm run stop && npm run launch",
     "doctor": "node scripts/doctor.mjs",
     "mobile:sync": "npm --prefix apps/mobile run sync",
-    "ios:native:open": "open apps/ios/Momentum/Momentum.xcodeproj",
+    "ios:native:open": "open apps/mobile/ios/App/App.xcodeproj",
     "ios:native:build": "bash scripts/ios-native.sh build",
     "ios:native:test": "bash scripts/ios-native.sh test",
     "test:ui": "node scripts/e2e-full.mjs"

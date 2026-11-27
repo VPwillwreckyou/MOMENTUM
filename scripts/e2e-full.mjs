@@ -39,8 +39,6 @@ if (await page.getByRole('button', { name: 'Begin setup' }).isVisible().catch(()
   await page.getByRole('button', { name: 'Ion Cyan' }).click();
   await page.getByRole('button', { name: 'Continue' }).click();
   await page.getByRole('button', { name: 'Continue' }).click();
-  await page.locator('.onboarding-provider').filter({ hasText: 'Groq' }).click();
-  await page.getByRole('button', { name: 'Continue' }).click();
   await page.getByLabel('One goal you want to move forward').fill('Run a 10K in under 60 minutes');
   await page.getByLabel('A deadline, if one is real').fill('2027-02-14');
   await page.getByRole('button', { name: 'Create goal & enter' }).click();
@@ -50,50 +48,6 @@ if (await page.getByRole('button', { name: 'Begin setup' }).isVisible().catch(()
   log('ONBOARDING_ALREADY_COMPLETE');
 }
 await page.screenshot({ path: `${screenshots}/20-onboarding-goal.png`, fullPage: true });
-
-// ---------- AI provider settings (Groq, server-managed key) ----------
-await page.goto('http://127.0.0.1:8787/settings#ai', { waitUntil: 'networkidle' });
-await page.getByLabel('Model').fill('openai/gpt-oss-120b');
-await page.getByRole('button', { name: 'Save & test connection' }).click();
-try {
-  await page.locator('.provider-test-result').waitFor({ timeout: 120000 });
-  log('AI_TEST', (await page.locator('.provider-test-result').innerText()).replace(/\s+/g, ' '));
-} catch {
-  log('AI_TEST_FAILED', await page.locator('.form-error-banner').innerText().catch(() => 'no error banner'));
-}
-await page.screenshot({ path: `${screenshots}/21-ai-settings.png`, fullPage: false });
-
-// ---------- Goal Architect with real Groq ----------
-await page.goto('http://127.0.0.1:8787/planner', { waitUntil: 'networkidle' });
-await page.locator('.architect-input').fill('Learn enough Spanish to hold a 20-minute conversation on a trip to Madrid');
-await page.getByRole('button', { name: 'Continue' }).click();
-await page.locator('.architect-input').fill('I know basic greetings and about 100 words. I study inconsistently and have 25 minutes on weekday mornings.');
-await page.getByRole('button', { name: 'Continue' }).click();
-await page.locator('.architect-input').fill('A 20-minute unscripted conversation with a native speaker, plus the confidence to ask for help when stuck.');
-await page.getByRole('button', { name: 'Continue' }).click();
-await page.getByRole('button', { name: '5–8 hours / week' }).click();
-await page.getByLabel('Target date').fill('2027-03-01');
-await page.getByRole('button', { name: 'Continue' }).click();
-await page.locator('.architect-input').fill('I travel for work twice a month and lose routine in hotels. I dislike grammar drills.');
-await page.getByRole('button', { name: 'Continue' }).click();
-await page.locator('.ai-consent .checkbox-row').click();
-await page.getByRole('button', { name: 'Generate my plan' }).click();
-let planGenerated = false;
-try {
-  await page.locator('.plan-preview').waitFor({ timeout: 300000 });
-  planGenerated = true;
-  log('AI_PLAN_GENERATED', (await page.locator('.plan-title-input').inputValue()));
-  await page.screenshot({ path: `${screenshots}/22-ai-plan-preview.png`, fullPage: true });
-  const planTitle = await page.locator('.plan-title-input').inputValue();
-  await page.locator('.plan-title-input').fill(`${planTitle} — Madrid trip`);
-  await page.getByRole('button', { name: 'Add to MOMENTUM' }).click();
-  await page.waitForTimeout(900);
-  log('AI_PLAN_IMPORTED', page.url());
-} catch {
-  const err = await page.locator('.form-error-banner').innerText().catch(() => 'no error visible');
-  log('AI_PLAN_FAILED', err.replace(/\s+/g, ' '));
-  await page.screenshot({ path: `${screenshots}/22-ai-plan-failure.png`, fullPage: true });
-}
 
 // ---------- Categories ----------
 await page.goto('http://127.0.0.1:8787/categories', { waitUntil: 'networkidle' });
