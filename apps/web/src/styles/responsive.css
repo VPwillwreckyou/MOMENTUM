@@ -51,10 +51,7 @@
     align-items: start;
   }
 
-  .architect-shell {
-    grid-template-columns: minmax(0, 1fr) 276px;
-    gap: 18px;
-  }
+
 
   .detail-layout {
     grid-template-columns: minmax(0, 1fr) 286px;
@@ -95,19 +92,11 @@
     grid-template-columns: 1fr 1fr;
   }
 
-  .architect-shell {
-    grid-template-columns: 1fr;
-  }
 
-  .architect-aside {
-    position: static;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 
-  .architect-provider {
-    grid-column: 1 / -1;
-  }
+
+
+
 
   .plan-preview__layout {
     grid-template-columns: 1fr;
@@ -213,10 +202,6 @@
 
   .search-trigger > span,
   .search-trigger kbd {
-    display: none;
-  }
-
-  .topbar__planner {
     display: none;
   }
 
@@ -423,23 +408,13 @@
     grid-column: auto;
   }
 
-  .architect-aside {
-    grid-template-columns: 1fr;
-  }
 
-  .architect-question {
-    min-height: 0;
-    padding: 25px 20px 21px;
-  }
 
-  .architect-actions {
-    flex-wrap: wrap;
-    padding: 12px 16px;
-  }
 
-  .architect-actions__hint {
-    display: none;
-  }
+
+
+
+
 
   .plan-preview__aside {
     grid-template-columns: 1fr;
@@ -514,9 +489,7 @@
     grid-template-columns: 1fr 1fr 1fr;
   }
 
-  .provider-grid {
-    grid-template-columns: 1fr 1fr;
-  }
+
 
   .account-grid {
     grid-template-columns: 1fr;
@@ -787,21 +760,13 @@
     display: none;
   }
 
-  .architect-question h2 {
-    font-size: 26px;
-  }
 
-  .architect-question {
-    padding: 22px 16px 18px;
-  }
 
-  .architect-actions .btn {
-    flex: 1;
-  }
 
-  .architect-actions__right {
-    flex: 1;
-  }
+
+
+
+
 
   .time-option {
     font-size: 9px;
@@ -844,9 +809,7 @@
     gap: 9px;
   }
 
-  .provider-grid {
-    grid-template-columns: 1fr;
-  }
+
 
   .oauth-grid {
     grid-template-columns: 1fr;
@@ -878,9 +841,7 @@
     flex-wrap: wrap;
   }
 
-  .onboarding-providers {
-    grid-template-columns: 1fr;
-  }
+
 
   .onboarding-recap {
     grid-template-columns: 1fr;

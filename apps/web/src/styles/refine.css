@@ -61,14 +61,6 @@
   font-size: 9px;
 }
 
-.copilot-card__copy strong {
-  font-size: 11px;
-}
-
-.copilot-card__copy span {
-  font-size: 10px;
-}
-
 .account-chip__copy strong {
   font-size: 11px;
 }
@@ -300,43 +292,23 @@
   font-size: 10px;
 }
 
-/* Planner */
-.architect-question > p {
-  font-size: 13px;
-}
 
-.architect-suggestions {
-  font-size: 9.5px;
-}
+
+
 
 .suggestion-chip {
   font-size: 9px;
 }
 
-.architect-actions__hint,
-.generate-row__note,
-.planner-note,
-.planner-skip {
-  font-size: 9.5px;
-}
 
-.architect-process strong {
-  font-size: 11.5px;
-}
 
-.architect-process p,
-.architect-privacy p,
-.architect-manual p {
-  font-size: 10.5px;
-}
 
-.architect-provider span {
-  font-size: 9px;
-}
 
-.architect-provider strong {
-  font-size: 10.5px;
-}
+
+
+
+
+
 
 .brief-row > span {
   font-size: 9.5px;
@@ -346,13 +318,9 @@
   font-size: 11.5px;
 }
 
-.architect-loading strong {
-  font-size: 12px;
-}
 
-.architect-loading p {
-  font-size: 10px;
-}
+
+
 
 .plan-preview__banner strong {
   font-size: 12px;
@@ -420,13 +388,9 @@
   font-size: 11px;
 }
 
-.provider-option strong {
-  font-size: 10.5px;
-}
 
-.provider-option small {
-  font-size: 8.5px;
-}
+
+
 
 .settings-callout strong {
   font-size: 11.5px;
@@ -448,13 +412,9 @@
   font-size: 9.5px;
 }
 
-.provider-test-result strong {
-  font-size: 10.5px;
-}
 
-.provider-test-result p {
-  font-size: 10px;
-}
+
+
 
 .account-summary strong {
   font-size: 11.5px;
@@ -553,19 +513,11 @@
   font-size: 11px;
 }
 
-.method-row p,
-.onboarding-note,
-.onboarding-provider-note {
-  font-size: 10px;
-}
 
-.onboarding-provider strong {
-  font-size: 10.5px;
-}
 
-.onboarding-provider small {
-  font-size: 8.5px;
-}
+
+
+
 
 .onboarding-recap > div,
 .onboarding-recap strong {
