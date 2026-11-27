@@ -28,7 +28,7 @@ struct SettingsView: View {
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Accent").font(.subheadline).foregroundStyle(AppTheme.secondaryText)
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 8), spacing: 10) {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 44), spacing: 8)], spacing: 8) {
                         ForEach(AccentPreset.all) { preset in
                             Button {
                                 store.updateSettings {
@@ -47,6 +47,7 @@ struct SettingsView: View {
                                         }
                                     }
                             }
+                            .frame(maxWidth: .infinity, minHeight: 44)
                             .buttonStyle(.plain)
                             .accessibilityLabel(preset.name)
                         }

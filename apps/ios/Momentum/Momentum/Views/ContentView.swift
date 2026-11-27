@@ -142,7 +142,7 @@ struct OnboardingView: View {
                             ForEach(ThemeMode.allCases) { Text($0.label).tag($0) }
                         }
                         .pickerStyle(.segmented)
-                        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 8), spacing: 10) {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 44), spacing: 8)], spacing: 8) {
                             ForEach(AccentPreset.all) { preset in
                                 Button { accent = preset } label: {
                                     Circle()
@@ -156,6 +156,7 @@ struct OnboardingView: View {
                                             }
                                         }
                                 }
+                                .frame(maxWidth: .infinity, minHeight: 44)
                                 .buttonStyle(.plain)
                             }
                         }

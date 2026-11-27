@@ -6,6 +6,8 @@ This is a **native** iOS app written in SwiftUI — not the Capacitor WebView sh
 
 Requires macOS with Xcode 16 or newer (built and type-checked with Xcode 27.2 / iOS 26 SDK; deployment target is **iOS 16**).
 
+The minimum deployment target is iOS 16, so the app supports iPhone 8 / 8 Plus, iPhone X and newer, plus iPhone SE (2nd generation) and newer when running iOS 16 or later. Older iPhones cannot install apps that require iOS 16. Layouts adapt to narrow and wide screens, and iPhone portrait and landscape are supported.
+
 ```bash
 open apps/ios/Momentum/Momentum.xcodeproj
 ```
