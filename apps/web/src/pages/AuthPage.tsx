@@ -293,7 +293,7 @@ export function AuthPage() {
             </div>
             <div>
               <CheckCircle2 size={17} />
-              <span><strong>Providers are yours.</strong> Use your own AI keys — they are encrypted at rest.</span>
+              <span><strong>Your account stays yours.</strong> Your account details are protected.</span>
             </div>
           </div>
           <div className="auth-showcase__quote">
@@ -317,7 +317,7 @@ export function AuthPage() {
 
             {apiReachable === false ? (
               <div className="inline-warning">
-                <span>The MOMENTUM account service is offline. Local goals and AI configuration still work.</span>
+                <span>The MOMENTUM account service is offline. Local goal tracking still works.</span>
               </div>
             ) : null}
             {serverError ? (
