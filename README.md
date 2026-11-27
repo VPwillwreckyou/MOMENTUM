@@ -8,7 +8,7 @@
 
 ![MOMENTUM overview](docs/screenshots/dashboard-light.png)
 
-MOMENTUM is a complete, working application — not a mockup. Goals, tasks, milestones, categories, recurring series, notes, attachments, settings and deleted-item recovery are stored locally in IndexedDB and survive restarts. AI planning is provider-neutral, account authentication is optional, and cloud sync is explicit encrypted backup rather than silent upload.
+MOMENTUM is a complete, working application — not a mockup. Goals, tasks, milestones, categories, recurring series, notes, attachments, settings and deleted-item recovery are stored locally in IndexedDB and survive restarts. Account authentication is optional, and cloud sync is explicit encrypted backup rather than silent upload.
 
 > 📖 **New here? Read [`TUTORIAL.md`](TUTORIAL.md) — what every file is for and how to launch the web, Windows, Android and iOS versions.**
 
@@ -21,7 +21,7 @@ MOMENTUM is a complete, working application — not a mockup. Goals, tasks, mile
 | **Web (any computer)** | Open `http://127.0.0.1:8787` in a browser whenever the service is running | Same full app as a browser tab |
 | **Linux / macOS** | In a terminal: `./scripts/momentum.sh start` | Builds if needed, starts the service, opens the browser. Use `stop`, `status` and `doctor` the same way |
 | **Android phone** | Copy `MOMENTUM-android.apk` from this folder to the phone, tap it, allow "install unknown apps", open MOMENTUM | The full app bundled natively; goals work fully offline on the phone |
-| **iPhone / iPad** | Open `apps/ios/Momentum/Momentum.xcodeproj` in Xcode on a Mac and press Run, or open the site in Safari → Share → **"Add to Home Screen"** | A real native SwiftUI app (fully offline) or the web app as a home-screen icon (AI/sync need access to the service) |
+| **iPhone / iPad** | Open `apps/mobile/ios/App/App.xcodeproj` in Xcode on a Mac and press Run, or open the site in Safari → Share → **"Add to Home Screen"** | The classic MOMENTUM interface in a Capacitor app or as a home-screen icon; goal tracking works offline |
 | **Browser "install" (Chrome/Edge)** | Click the install icon in the address bar | App-like window, same as the Windows app experience |
 
 ### Keeping it happy (plain commands, from this folder in a terminal)
@@ -47,8 +47,6 @@ If something misbehaves: run `npm run doctor` — it names the problem and the c
 | Recently Deleted with 30-day recovery window | Working |
 | Global search across goals, tasks, subtasks, notes, milestones, categories and attachment names | Working |
 | Filtering and sorting | Working |
-| AI Goal Architect interview, editable plan preview, provider settings | Working |
-| AI provider | Groq is the provider configured for this build; the Java proxy architecture still supports DeepSeek, OpenAI, Gemini, Ollama and allowlisted OpenAI-compatible providers | Working |
 | PDF export for individual goals | Working |
 | Offline-first PWA with installable manifest and service worker | Working |
 | Dark / light themes, accent presets, custom HEX accent | Working |
@@ -60,27 +58,23 @@ If something misbehaves: run `npm run doctor` — it names the problem and the c
 | Windows desktop app | Runs locally with no internet: three launchers — the `MOMENTUM` desktop shortcut / `MOMENTUM.exe`, and `Launch MOMENTUM.bat` — all start the local Java service and open a standalone app window; `MOMENTUM Website.bat` opens it as a browser tab. The packaged Electron build is present but its GUI cannot start on this Windows build (see Known limitations) |
 | Android app | Same web app bundled natively via Capacitor. Signed debug APK at `MOMENTUM-android.apk` |
 | iOS app (Capacitor) | Same web app in a WKWebView shell, generated and synced at `apps/mobile/ios`; builds on macOS |
-| iOS app (native SwiftUI) | Standalone offline app at `apps/ios/Momentum` with goals, tasks, milestones, progress, planner, categories, backup and the same momentum formula. Open the Xcode project on a Mac; `npm run ios:native:build` builds it |
 
 ## Architecture at a glance
 
 ```text
 React + TypeScript web client (Vite)
   ├── IndexedDB local workspace (offline-first, source of truth)
-  ├── Domain/validation/export/AI client
+  ├── Domain/validation/export
   └── Optional /api requests
              │
 Java 21 service (no external Java dependencies)
   ├── email/password accounts + opaque sessions
   ├── OAuth 2.0 + PKCE (Google, Apple, GitHub, Discord)
-  ├── provider-neutral AI proxy (keys are not exposed to cloud SDKs)
   ├── opaque encrypted sync envelope storage
   └── serves the production web build
-             │
-     Optional AI providers (cloud APIs or local Ollama)
 ```
 
-- **Java is a required core service.** It owns accounts, OAuth, AI proxying, encrypted sync storage and the production web host.
+- **Java is a required core service.** It owns accounts, OAuth, encrypted sync storage and the production web host.
 - **Goal data is separate from authentication.** Signing in does not upload goals. Goals live locally until the user explicitly enables encrypted sync.
 - **The web client is the same product on every platform.** Windows uses the installable PWA plus an Electron shell; Android and iOS are Capacitor shells around the same built web client. The Java API can be shared by all clients. See [Platform guide](docs/PLATFORMS.md).
 
@@ -88,15 +82,13 @@ More detail: [Architecture](docs/ARCHITECTURE.md) · [Data model](docs/DATA_MODE
 
 ### Screens
 
-| Goal detail | Goal Architect |
+| Goal detail | Mobile |
 | --- | --- |
-| ![Goal detail with milestones and tasks](docs/screenshots/goal-detail.png) | ![AI-assisted editable plan](docs/screenshots/planner.png) |
+| ![Goal detail with milestones and tasks](docs/screenshots/goal-detail.png) | ![Mobile dashboard](docs/screenshots/mobile-dashboard.png) |
 
-| Encrypted account sync | Mobile |
+| Encrypted account sync | Categories |
 | --- | --- |
-| ![Account and encrypted sync](docs/screenshots/account-sync.png) | ![Mobile dashboard](docs/screenshots/mobile-dashboard.png) |
-
-![Groq-only AI settings](docs/screenshots/settings-ai.png)
+| ![Account and encrypted sync](docs/screenshots/account-sync.png) | ![Categories](docs/screenshots/categories.png) |
 
 ## Quick start
 
@@ -116,7 +108,7 @@ npm start
 
 `npm start` builds any missing artifacts, opens `http://127.0.0.1:8787`, and keeps the Java service in the foreground. Press `Ctrl+C` to stop it.
 
-Everything runs from this computer: the Java service, web bundle, fonts and icons are local, so MOMENTUM launches and works with **no internet connection**. Only AI replies (Groq) and optional OAuth sign-in require one. The production build also registers a service worker, so an already-opened PWA tab reloads even if the local service is stopped.
+Everything runs from this computer: the Java service, web bundle, fonts and icons are local, so MOMENTUM launches and works with **no internet connection**. Optional OAuth sign-in requires a network connection. The production build also registers a service worker, so an already-opened PWA tab reloads even if the local service is stopped.
 
 For a one-click browser launch on Windows, double-click `MOMENTUM Website.bat`; for a standalone window, use `Launch MOMENTUM.bat`, the `MOMENTUM` desktop shortcut or `MOMENTUM.exe`. On macOS, double-click `MOMENTUM.command`. On Linux/macOS, run `./scripts/momentum.sh start` (or double-click `MOMENTUM.desktop` on Linux).
 
@@ -219,7 +211,7 @@ npm run test:colors    # 10 e2e checks: dual color pickers, gradient engine, OAu
 
 `npm run test:api` compiles test classes without rewriting the production jar, so it can run while the app is live. The web and API suites also run as GitHub Actions CI on every push.
 
-Browser end-to-end suites in `scripts/` were run against the production build. See [Testing](docs/TESTING.md) for exact results and how to run them. Covered flows include onboarding, goal/task/milestone CRUD, **real Groq plan generation and import**, PDF download, archive/restore, trash/restore, 30-day purge, attachment search, theme switching, account registration, session persistence, encrypted two-device sync merge, backup import/export, offline reload and mutation, and mobile viewport layout.
+Browser end-to-end suites in `scripts/` were run against the production build. See [Testing](docs/TESTING.md) for exact results and how to run them. Covered flows include onboarding, goal/task/milestone CRUD, PDF download, archive/restore, trash/restore, 30-day purge, attachment search, theme switching, account registration, session persistence, encrypted two-device sync merge, backup import/export, offline reload and mutation, and mobile viewport layout.
 
 The packaged Windows runtime was tested separately from the GUI: its embedded Java service started from `resources`, used the packaged Groq key, generated a Groq response, and rejected an unapproved provider.
 
