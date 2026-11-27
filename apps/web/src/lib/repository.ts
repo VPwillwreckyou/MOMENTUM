@@ -1,6 +1,6 @@
 import type { AppSettings, AttachmentMeta, Goal, Workspace } from '../state/types';
 import { clearAttachments, clearDatabase, deleteDocument, getDocument, listAttachments, putDocument, removeAttachment, removeAttachmentsForGoal, putAttachment } from './db';
-import { AI_PROVIDER_LOCK, defaultAIConfig, defaultSettings, emptyWorkspace } from './defaults';
+import { defaultSettings, emptyWorkspace } from './defaults';
 import { openDatabase } from './db';
 
 const WORKSPACE_KEY = 'workspace';
@@ -133,15 +133,6 @@ export function normalizeWorkspace(raw: unknown): Workspace {
 export function normalizeSettings(raw: unknown): AppSettings {
   const base = defaultSettings();
   if (!isRecord(raw)) return base;
-  const ai = isRecord(raw.ai) ? raw.ai : {};
-  const storedProvider = ['deepseek', 'openai', 'gemini', 'groq', 'ollama', 'custom'].includes(String(ai.provider))
-    ? (ai.provider as AppSettings['ai']['provider'])
-    : 'groq';
-  const provider = AI_PROVIDER_LOCK ?? storedProvider;
-  const providerChanged = provider !== storedProvider;
-  const providerDefaults = defaultAIConfig(provider);
-  const storedModel = String(ai.model ?? '');
-  const retiredGroqModel = provider === 'groq' && storedModel === 'llama-3.3-70b-versatile';
   return {
     ...base,
     themeMode: ['dark', 'light', 'system'].includes(String(raw.themeMode))
@@ -158,25 +149,6 @@ export function normalizeSettings(raw: unknown): AppSettings {
     onboardingComplete: Boolean(raw.onboardingComplete),
     syncEnabled: Boolean(raw.syncEnabled),
     lastSyncAt: typeof raw.lastSyncAt === 'string' ? raw.lastSyncAt : null,
-    ai: {
-      ...providerDefaults,
-      ...ai,
-      provider,
-      model:
-        providerChanged || retiredGroqModel || !storedModel
-          ? providerDefaults.model
-          : storedModel.slice(0, 160),
-      baseUrl:
-        providerChanged || !ai.baseUrl
-          ? providerDefaults.baseUrl
-          : String(ai.baseUrl).slice(0, 500),
-      apiKeyCipher:
-        !providerChanged && typeof ai.apiKeyCipher === 'string' ? ai.apiKeyCipher : null,
-      hasKey: !providerChanged && Boolean(ai.hasKey),
-      consentAcceptedAt: typeof ai.consentAcceptedAt === 'string' ? ai.consentAcceptedAt : null,
-      lastTestAt: typeof ai.lastTestAt === 'string' ? ai.lastTestAt : null,
-      lastTestOk: typeof ai.lastTestOk === 'boolean' ? ai.lastTestOk : null,
-    },
   };
 }
 

@@ -1,5 +1,5 @@
-import type { AIPlan, GoalDraft, Priority } from '../state/types';
-import { parseDateOnly, toDateInput } from './dates';
+import type { GoalDraft } from '../state/types';
+import { parseDateOnly } from './dates';
 
 export interface ValidationErrors {
   [field: string]: string;
@@ -54,91 +54,8 @@ export function validatePassword(password: string): string | null {
   return null;
 }
 
-const PRIORITIES: Priority[] = ['low', 'medium', 'high', 'critical'];
-
 export function validateHex(value: string): string | null {
   const match = /^#?([0-9a-fA-F]{6})$/.exec(value.trim());
   if (!match) return null;
   return `#${match[1].toLowerCase()}`;
-}
-
-function safeDate(value: unknown): string | null {
-  if (typeof value !== 'string') return null;
-  return parseDateOnly(value) ? toDateInput(parseDateOnly(value)!) : null;
-}
-
-function cleanText(value: unknown, max = 600): string {
-  return typeof value === 'string' ? value.trim().slice(0, max) : '';
-}
-
-/** Validate untrusted AI output before it touches local data. */
-export function normalizeAIPlan(raw: unknown): AIPlan {
-  if (!raw || typeof raw !== 'object') throw new Error('The provider returned an invalid plan.');
-  const candidate = raw as Record<string, unknown>;
-  const title = cleanText(candidate.title, 120);
-  if (!title) throw new Error('The provider returned a plan without a title.');
-
-  const validMilestones = Array.isArray(candidate.milestones) ? candidate.milestones : [];
-  const milestones = validMilestones.slice(0, 12).map((item) => {
-    const milestone = (item ?? {}) as Record<string, unknown>;
-    const tasks = Array.isArray(milestone.tasks) ? milestone.tasks : [];
-    return {
-      title: cleanText(milestone.title, 160) || 'Milestone',
-      description: cleanText(milestone.description, 800),
-      dueDate: safeDate(milestone.dueDate),
-      tasks: tasks.slice(0, 15).map((task) => {
-        const record = (task ?? {}) as Record<string, unknown>;
-        const priority = typeof record.priority === 'string' && PRIORITIES.includes(record.priority as Priority)
-          ? (record.priority as Priority)
-          : 'medium';
-        return {
-          title: cleanText(record.title, 240) || 'Next action',
-          notes: cleanText(record.notes, 1000),
-          dueDate: safeDate(record.dueDate),
-          priority,
-        };
-      }),
-    };
-  });
-
-  const firstTasks = Array.isArray(candidate.firstTasks)
-    ? candidate.firstTasks.slice(0, 12).map((task) => {
-        const record = (task ?? {}) as Record<string, unknown>;
-        const priority = typeof record.priority === 'string' && PRIORITIES.includes(record.priority as Priority)
-          ? (record.priority as Priority)
-          : 'medium';
-        return {
-          title: cleanText(record.title, 240) || 'Next action',
-          notes: cleanText(record.notes, 1000),
-          dueDate: safeDate(record.dueDate),
-          priority,
-        };
-      })
-    : [];
-
-  if (milestones.length === 0 && firstTasks.length === 0) {
-    throw new Error('The provider returned a plan without milestones or tasks.');
-  }
-
-  return {
-    title,
-    description: cleanText(candidate.description, 2000),
-    suggestedDeadline: safeDate(candidate.suggestedDeadline),
-    milestones,
-    firstTasks,
-  };
-}
-
-export function parseAIJson(text: string): unknown {
-  const cleaned = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
-  try {
-    return JSON.parse(cleaned);
-  } catch {
-    const start = cleaned.indexOf('{');
-    const end = cleaned.lastIndexOf('}');
-    if (start >= 0 && end > start) {
-      return JSON.parse(cleaned.slice(start, end + 1));
-    }
-    throw new Error('The provider did not return valid JSON. Try generating again.');
-  }
 }

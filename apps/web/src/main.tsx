@@ -8,7 +8,6 @@ import './styles/components.css';
 import './styles/layout.css';
 import './styles/pages.css';
 import './styles/detail.css';
-import './styles/planner.css';
 import './styles/auth.css';
 import './styles/settings.css';
 import './styles/onboarding.css';
