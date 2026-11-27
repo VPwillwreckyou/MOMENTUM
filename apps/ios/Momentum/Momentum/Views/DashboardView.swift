@@ -81,7 +81,7 @@ struct DashboardView: View {
                 }
                 Spacer(minLength: 0)
             }
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 92), spacing: 10)], spacing: 10) {
+            HStack(spacing: 10) {
                 MetricTile(title: "Active goals", value: "\(store.activeGoals.count)", systemImage: "target")
                 MetricTile(title: "Done today", value: "\(completedTodayCount(store.workspace.goals))", systemImage: "checkmark.circle.fill")
                 MetricTile(title: "Last 7 days", value: "\(series.reduce(0) { $0 + $1.count })", systemImage: "flame.fill")

@@ -38,6 +38,16 @@
                ReferencedContainer = "container:Momentum.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "1A0000000000000000000306"
+               BuildableName = "MomentumUITests.xctest"
+               BlueprintName = "MomentumUITests"
+               ReferencedContainer = "container:Momentum.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

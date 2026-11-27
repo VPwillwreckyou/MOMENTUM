@@ -19,7 +19,7 @@ final class MomentumTests: XCTestCase {
                          completedAt: done ? stamp : nil, dueDate: nil, priority: .medium,
                          order: index, createdAt: stamp, updatedAt: stamp)
             },
-            finance: nil, aiGenerated: nil
+            finance: nil
         )
     }
 

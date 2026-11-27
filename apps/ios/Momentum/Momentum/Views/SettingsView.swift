@@ -28,7 +28,7 @@ struct SettingsView: View {
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Accent").font(.subheadline).foregroundStyle(AppTheme.secondaryText)
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 44), spacing: 8)], spacing: 8) {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 8), spacing: 10) {
                         ForEach(AccentPreset.all) { preset in
                             Button {
                                 store.updateSettings {
@@ -47,7 +47,6 @@ struct SettingsView: View {
                                         }
                                     }
                             }
-                            .frame(maxWidth: .infinity, minHeight: 44)
                             .buttonStyle(.plain)
                             .accessibilityLabel(preset.name)
                         }
@@ -112,7 +111,7 @@ struct SettingsView: View {
 
             Section("About") {
                 HStack { Text("Version"); Spacer(); Text("1.0.0").foregroundStyle(AppTheme.secondaryText) }
-                Text("This native iOS app is fully offline. Goals, tasks and categories live only on this device. AI planning, accounts and cloud sync stay in the web app and Capacitor shell.")
+                Text("This native iOS app is fully offline. Goals, tasks and categories live only on this device.")
                     .font(.caption).foregroundStyle(AppTheme.secondaryText)
             }
         }

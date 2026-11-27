@@ -51,7 +51,7 @@ func makeSeedWorkspace(now: Date = Date()) -> Workspace {
     let appGoal = Goal(
         id: "goal-ios-launch", title: "Ship the MOMENTUM iOS app",
         description: "Build a native iPhone experience that keeps every goal available offline.",
-        notes: "Focus on the core loop: capture a goal, see the next move, mark progress. AI planning stays in the web app for now.",
+        notes: "Focus on the core loop: capture a goal, see the next move, and mark progress.",
         categoryId: work.id, status: .active, kind: .oneTime, recurrence: nil,
         priority: .high, startDate: day(-6), deadline: day(12),
         createdAt: ago(6), updatedAt: stamp, completedAt: nil, archivedAt: nil, deletedAt: nil,
@@ -69,7 +69,7 @@ func makeSeedWorkspace(now: Date = Date()) -> Workspace {
             task(id: "t-sub", goalID: "goal-ios-launch", title: "Add subtasks under goal detail", due: 3, parentID: "t-detail", order: 4),
             task(id: "t-test", goalID: "goal-ios-launch", title: "Run unit tests and device pass", due: 10, milestoneID: "ms-polish", order: 5),
         ],
-        finance: nil, aiGenerated: nil
+        finance: nil
     )
 
     let runGoal = Goal(
@@ -89,7 +89,7 @@ func makeSeedWorkspace(now: Date = Date()) -> Workspace {
             task(id: "t-run-2", goalID: "goal-10k", title: "Interval session", due: 1, milestoneID: "ms-5k", order: 1),
             task(id: "t-run-3", goalID: "goal-10k", title: "Long run 7K", due: 6, milestoneID: "ms-5k", order: 2),
         ],
-        finance: nil, aiGenerated: nil
+        finance: nil
     )
 
     let readingGoal = Goal(
@@ -105,7 +105,7 @@ func makeSeedWorkspace(now: Date = Date()) -> Workspace {
         tasks: [
             task(id: "t-read", goalID: "goal-reading", title: "Pick the next book", priority: .low, due: 3, order: 0),
         ],
-        finance: nil, aiGenerated: nil
+        finance: nil
     )
 
     let doneGoal = Goal(
@@ -121,7 +121,7 @@ func makeSeedWorkspace(now: Date = Date()) -> Workspace {
             task(id: "t-setup-1", goalID: "goal-setup", title: "Open MOMENTUM", completed: true, completedDaysAgo: 9, order: 0),
             task(id: "t-setup-2", goalID: "goal-setup", title: "Create a category", completed: true, completedDaysAgo: 8, order: 1),
         ],
-        finance: nil, aiGenerated: nil
+        finance: nil
     )
 
     let activities = [

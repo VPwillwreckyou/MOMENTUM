@@ -78,7 +78,7 @@ final class MomentumStore: ObservableObject {
             recurrence: draft.kind == .recurring ? (draft.recurrence ?? Recurrence(frequency: .weekly, interval: 1)) : nil,
             priority: draft.priority, startDate: draft.startDate, deadline: draft.deadline,
             createdAt: stamp, updatedAt: stamp, completedAt: nil, archivedAt: nil, deletedAt: nil,
-            seriesId: nil, occurrence: 1, milestones: [], tasks: [], finance: nil, aiGenerated: nil
+            seriesId: nil, occurrence: 1, milestones: [], tasks: [], finance: nil
         )
         workspace.goals.append(goal)
         log(goalID: goal.id, type: .goalCreated, message: goal.title)

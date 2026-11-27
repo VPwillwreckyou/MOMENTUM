@@ -120,7 +120,6 @@ struct Goal: Codable, Identifiable, Hashable {
     var milestones: [Milestone]
     var tasks: [GoalTask]
     var finance: FinancePlan?
-    var aiGenerated: Bool?
 
     var isTrashed: Bool { deletedAt != nil }
     var isArchived: Bool { archivedAt != nil && deletedAt == nil }

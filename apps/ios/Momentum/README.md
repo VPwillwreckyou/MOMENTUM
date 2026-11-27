@@ -62,7 +62,7 @@ Settings → **Export JSON backup** uses the same envelope shape as the web expo
 
 ## Deliberate scope
 
-The native app is offline by design. It does not include AI planning, accounts/OAuth, encrypted cloud sync, attachments, PDF export or a connection to the local Java service. Those features remain in the web app and the Capacitor shells (`apps/mobile/ios`, `apps/mobile/android`). No API keys or credentials are bundled.
+The native app is offline by design. It stores goals and preferences on this device and does not connect to an account, cloud service, attachments, PDF export or the local Java service.
 
 ## Tests
 
