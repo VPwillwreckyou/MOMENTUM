@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeAIPlan, parseAIJson, validateEmail, validateGoalDraft, validateHex, validatePassword } from '../lib/validation';
+import { validateEmail, validateGoalDraft, validateHex, validatePassword } from '../lib/validation';
 
 describe('validation', () => {
   it('validates goal drafts', () => {
@@ -34,33 +34,5 @@ describe('validation', () => {
     expect(validateHex('blue')).toBeNull();
   });
 
-  it('normalizes untrusted AI output and rejects empty plans', () => {
-    const plan = normalizeAIPlan({
-      title: '  A test plan ',
-      description: 'Why it works',
-      milestones: [
-        {
-          title: 'Milestone one',
-          description: 'Outcome',
-          dueDate: '2026-12-01',
-          tasks: [
-            { title: 'Do a thing', dueDate: '2026-11-20', priority: 'urgent' },
-            { title: '' },
-          ],
-        },
-      ],
-      firstTasks: [{ title: 'Start now', priority: 'high' }],
-    });
-    expect(plan.title).toBe('A test plan');
-    expect(plan.milestones[0].tasks[0].priority).toBe('medium');
-    expect(plan.milestones[0].tasks[1].title).toBe('Next action');
-    expect(plan.firstTasks[0].priority).toBe('high');
-    expect(() => normalizeAIPlan({ title: 'Empty', milestones: [], firstTasks: [] })).toThrow(/without milestones/i);
-  });
 
-  it('parses JSON wrapped in a markdown fence', () => {
-    expect(parseAIJson('```json\n{"ok":true}\n```')).toEqual({ ok: true });
-    expect(parseAIJson('noise before {"ok":true} noise after')).toEqual({ ok: true });
-    expect(() => parseAIJson('not json')).toThrow(/valid JSON/i);
-  });
 });

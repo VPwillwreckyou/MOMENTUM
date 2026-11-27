@@ -23,14 +23,13 @@ describe('goal mutations', () => {
         recurrence: { frequency: 'weekly', interval: 2 },
         deadline: '2027-01-01',
       },
-      { now, aiGenerated: true },
+      { now },
     );
     expect(goal.title).toBe('Write a novel');
     expect(goal.description).toBe('A first draft');
     expect(goal.status).toBe('active');
     expect(goal.kind).toBe('recurring');
     expect(goal.recurrence).toEqual({ frequency: 'weekly', interval: 2 });
-    expect(goal.aiGenerated).toBe(true);
     expect(goal.createdAt).toBe(now.toISOString());
   });
 
