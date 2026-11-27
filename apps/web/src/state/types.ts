@@ -64,7 +64,6 @@ export interface Goal {
   milestones: Milestone[];
   tasks: Task[];
   finance?: FinancePlan | null;
-  aiGenerated?: boolean;
 }
 
 export type CategoryIcon =
@@ -98,7 +97,6 @@ export type ActivityType =
   | 'task-reopened'
   | 'milestone-completed'
   | 'note-updated'
-  | 'plan-imported';
 
 export interface Activity {
   id: string;
@@ -120,19 +118,6 @@ export interface AttachmentMeta {
 export type ThemeMode = 'dark' | 'light' | 'system';
 export type Density = 'comfortable' | 'compact';
 
-export type AIProviderId = 'deepseek' | 'openai' | 'gemini' | 'groq' | 'ollama' | 'custom';
-
-export interface AIConfig {
-  provider: AIProviderId;
-  model: string;
-  baseUrl: string;
-  apiKeyCipher?: string | null;
-  hasKey: boolean;
-  consentAcceptedAt?: string | null;
-  lastTestAt?: string | null;
-  lastTestOk?: boolean | null;
-}
-
 export interface AppSettings {
   schemaVersion: 1;
   themeMode: ThemeMode;
@@ -143,7 +128,6 @@ export interface AppSettings {
   weekStartsOn: 0 | 1;
   displayName: string;
   onboardingComplete: boolean;
-  ai: AIConfig;
   syncEnabled: boolean;
   lastSyncAt?: string | null;
 }
@@ -169,37 +153,6 @@ export interface GoalDraft {
   kind?: GoalKind;
   recurrence?: Recurrence | null;
   finance?: FinancePlan | null;
-}
-
-export interface AIPlanTask {
-  title: string;
-  notes?: string;
-  dueDate?: string | null;
-  priority?: Priority;
-}
-
-export interface AIPlanMilestone {
-  title: string;
-  description?: string;
-  dueDate?: string | null;
-  tasks: AIPlanTask[];
-}
-
-export interface AIPlan {
-  title: string;
-  description: string;
-  suggestedDeadline?: string | null;
-  milestones: AIPlanMilestone[];
-  firstTasks: AIPlanTask[];
-}
-
-export interface PlannerAnswers {
-  goal: string;
-  situation: string;
-  success: string;
-  timeCommitment: string;
-  targetDate: string;
-  constraints: string;
 }
 
 export interface AuthUser {

@@ -198,62 +198,9 @@
   margin-top: auto;
 }
 
-.copilot-card {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--surface-inset);
-  padding: 10px;
-  transition: border-color 0.15s var(--ease-out);
-}
 
-.copilot-card:hover {
-  border-color: var(--line-strong);
-}
 
-.copilot-card__icon {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  place-items: center;
-  border-radius: 8px;
-  background: var(--surface-3);
-  color: var(--text-muted);
-}
 
-.copilot-card--ready .copilot-card__icon {
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-
-.copilot-card__copy {
-  display: flex;
-  overflow: hidden;
-  flex: 1;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.copilot-card__copy strong {
-  overflow: hidden;
-  color: var(--text-soft);
-  font-size: 10.5px;
-  font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.copilot-card__copy span {
-  color: var(--text-faint);
-  font-size: 9.5px;
-}
-
-.copilot-card__arrow {
-  flex: none;
-  color: var(--text-faint);
-}
 
 .sidebar__account {
   display: flex;
@@ -431,10 +378,6 @@
   color: var(--warning);
   font-size: 9.5px;
   font-weight: 650;
-}
-
-.topbar__planner {
-  gap: 6px;
 }
 
 .topbar__avatar {
