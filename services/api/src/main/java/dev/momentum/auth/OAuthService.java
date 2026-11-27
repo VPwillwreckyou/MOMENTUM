@@ -27,7 +27,7 @@ public final class OAuthService {
     private static final Duration STATE_LIFETIME = Duration.ofMinutes(10);
     private static final String USER_AGENT = "MOMENTUM/1.0";
 
-    private record OAuthState(String provider, String verifier, Instant createdAt) {}
+    private record OAuthState(String provider, String verifier, Instant createdAt, boolean nativeApp) {}
 
     private record Profile(String provider, String subject, String email, String name, boolean verified) {}
 
@@ -69,13 +69,17 @@ public final class OAuthService {
     }
 
     public String authorizationUrl(String provider) {
+        return authorizationUrl(provider, false);
+    }
+
+    public String authorizationUrl(String provider, boolean nativeApp) {
         if (!configured(provider)) throw new OAuthException("This sign-in method is not configured on the server.");
         String state = Tokens.randomToken(24);
         String verifier = Tokens.randomToken(48);
         String challenge = pkceChallenge(verifier);
         synchronized (states) {
             cleanupStates();
-            states.put(state, new OAuthState(provider, verifier, Instant.now()));
+            states.put(state, new OAuthState(provider, verifier, Instant.now(), nativeApp));
         }
         String redirect = redirectUri(provider);
         return switch (provider) {
@@ -102,6 +106,14 @@ public final class OAuthService {
                     + "&code_challenge_method=S256&prompt=consent";
             default -> throw new OAuthException("Unsupported sign-in method.");
         };
+    }
+
+    public boolean nativeState(String provider, String stateValue) {
+        if (stateValue == null) return false;
+        synchronized (states) {
+            OAuthState state = states.get(stateValue);
+            return state != null && state.provider().equals(provider) && state.nativeApp();
+        }
     }
 
     public AccountStore.AuthResult finish(String provider, Map<String, String> params) {

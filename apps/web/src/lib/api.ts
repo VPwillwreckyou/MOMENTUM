@@ -1,3 +1,6 @@
+import { Capacitor } from '@capacitor/core';
+import { Preferences } from '@capacitor/preferences';
+
 export class ApiError extends Error {
   readonly status: number;
 
@@ -22,6 +25,15 @@ const BUILD_TIME_API_BASE = (import.meta.env.VITE_API_URL as string | undefined)
  * Web/PWA users leave it empty and get same-origin API routing.
  */
 const API_URL_STORAGE_KEY = 'momentum.api-url';
+const NATIVE_SESSION_KEY = 'momentum.native-session';
+
+export async function saveNativeSession(token: string): Promise<void> {
+  if (Capacitor.isNativePlatform()) await Preferences.set({ key: NATIVE_SESSION_KEY, value: token });
+}
+
+export async function clearNativeSession(): Promise<void> {
+  if (Capacitor.isNativePlatform()) await Preferences.remove({ key: NATIVE_SESSION_KEY });
+}
 
 export function resolvedApiBase(): string {
   if (BUILD_TIME_API_BASE) return BUILD_TIME_API_BASE;
@@ -52,11 +64,15 @@ export function apiUrl(path: string): string {
 export async function apiRequest<T>(path: string, options: ApiOptions = {}): Promise<T> {
   let response: Response;
   try {
+    const nativeSession = Capacitor.isNativePlatform()
+      ? (await Preferences.get({ key: NATIVE_SESSION_KEY })).value
+      : null;
     response = await fetch(apiUrl(path), {
       method: options.method ?? 'GET',
       credentials: 'include',
       headers: {
         Accept: 'application/json',
+        ...(nativeSession ? { Authorization: `Bearer ${nativeSession}` } : {}),
         ...(options.body !== undefined ? { 'Content-Type': 'application/json' } : {}),
       },
       body: options.body !== undefined ? JSON.stringify(options.body) : undefined,

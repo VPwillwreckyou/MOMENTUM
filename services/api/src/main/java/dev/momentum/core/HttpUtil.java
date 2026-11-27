@@ -87,7 +87,16 @@ public final class HttpUtil {
     }
 
     public static String sessionToken(HttpExchange exchange) {
+        String authorization = exchange.getRequestHeaders().getFirst("Authorization");
+        String bearer = bearerToken(authorization);
+        if (bearer != null) return bearer;
         return parseCookies(exchange).get(SESSION_COOKIE);
+    }
+
+    public static String bearerToken(String authorization) {
+        if (authorization == null || !authorization.regionMatches(true, 0, "Bearer ", 0, 7)) return null;
+        String bearer = authorization.substring(7).trim();
+        return bearer.isBlank() ? null : bearer;
     }
 
     public static String sessionCookie(String token, int maxAgeSeconds, boolean secure) {

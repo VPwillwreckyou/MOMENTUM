@@ -1,7 +1,9 @@
 package dev.momentum;
 
 import dev.momentum.auth.AccountStore;
+import dev.momentum.auth.NativeOAuthTicketStore;
 import dev.momentum.core.Json;
+import dev.momentum.core.HttpUtil;
 import dev.momentum.core.PasswordHasher;
 import dev.momentum.core.RateLimiter;
 import dev.momentum.sync.SyncStore;
@@ -22,8 +24,10 @@ public final class TestRunner {
         test("json rejects malformed input", TestRunner::jsonRejectsMalformed);
         test("password hashing verifies and rejects", TestRunner::passwordHashing);
         test("rate limiter enforces its window", TestRunner::rateLimiter);
+        test("native bearer token parsing", TestRunner::bearerToken);
         test("account registration, login and sessions", TestRunner::accounts);
         test("oauth links by identity and verified email", TestRunner::oauthAccounts);
+        test("native OAuth tickets expire and redeem once", TestRunner::nativeOAuthTickets);
         test("sync store enforces optimistic revisions", TestRunner::syncStore);
         test("sync store rejects a malformed envelope", TestRunner::syncRejectsMalformed);
         test("backup import round trips goals, tasks and attachments", DataMigrationTest::importRoundTrip);
@@ -90,6 +94,13 @@ public final class TestRunner {
         assertEquals(2, limiter.limit());
     }
 
+    private static void bearerToken() {
+        assertEquals("session_123", HttpUtil.bearerToken("Bearer session_123"));
+        assertEquals("session_123", HttpUtil.bearerToken("bEaReR   session_123  "));
+        assertEquals(null, HttpUtil.bearerToken("Basic session_123"));
+        assertEquals(null, HttpUtil.bearerToken("Bearer   "));
+    }
+
     private static void accounts() throws Exception {
         Path dir = Files.createTempDirectory("momentum-accounts-");
         try {
@@ -147,6 +158,22 @@ public final class TestRunner {
         } finally {
             deleteTree(dir);
         }
+    }
+
+    private static void nativeOAuthTickets() throws Exception {
+        Path dir = Files.createTempDirectory("momentum-native-oauth-");
+        AccountStore accounts = new AccountStore(dir);
+        AccountStore.AuthResult result = accounts.register(
+                "native@example.com", "NativePass123", "Native User");
+        NativeOAuthTicketStore tickets = new NativeOAuthTicketStore();
+        String ticket = tickets.issue(result);
+        assertEquals(result.user().id(), tickets.redeem(ticket).user().id());
+        assertEquals(null, tickets.redeem(ticket));
+
+        NativeOAuthTicketStore shortLived = new NativeOAuthTicketStore(Duration.ofMillis(1));
+        String expiringTicket = shortLived.issue(result);
+        Thread.sleep(5);
+        assertEquals(null, shortLived.redeem(expiringTicket));
     }
 
     private static void syncStore() throws Exception {

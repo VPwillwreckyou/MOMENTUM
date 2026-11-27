@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpServer;
 import dev.momentum.ai.AiProxy;
 import dev.momentum.auth.AccountStore;
 import dev.momentum.auth.OAuthService;
+import dev.momentum.auth.NativeOAuthTicketStore;
 import dev.momentum.core.HttpUtil;
 import dev.momentum.core.PasswordHasher;
 import dev.momentum.core.RateLimiter;
@@ -56,6 +57,7 @@ public final class MomentumServer {
     private final RateLimiter authLimiter = new RateLimiter(40, Duration.ofMinutes(15));
     private final RateLimiter aiLimiter = new RateLimiter(24, Duration.ofMinutes(1));
     private final RateLimiter syncLimiter = new RateLimiter(40, Duration.ofMinutes(1));
+    private final NativeOAuthTicketStore nativeOAuthTickets = new NativeOAuthTicketStore();
     private final ScheduledExecutorService maintenance = Executors.newSingleThreadScheduledExecutor(task -> {
         Thread thread = new Thread(task, "momentum-maintenance");
         thread.setDaemon(true);
@@ -253,6 +255,10 @@ public final class MomentumServer {
             return;
         }
         if (path.startsWith("/api/auth/oauth/")) {
+            if (path.equals("/api/auth/oauth/exchange")) {
+                handleNativeOAuthExchange(exchange);
+                return;
+            }
             handleOAuth(exchange, path);
             return;
         }
@@ -320,7 +326,8 @@ public final class MomentumServer {
         if (!callback) {
             requireMethod(exchange, "GET");
             try {
-                String url = service.oauthAuthorizationUrl(provider);
+                boolean nativeApp = "1".equals(HttpUtil.queryValue(exchange.getRequestURI().getRawQuery(), "native"));
+                String url = service.oauthAuthorizationUrl(provider, nativeApp);
                 HttpUtil.redirect(exchange, url);
             } catch (OAuthService.OAuthException exception) {
                 HttpUtil.sendError(exchange, 503, exception.getMessage());
@@ -347,13 +354,40 @@ public final class MomentumServer {
             requireMethod(exchange, "GET");
             return;
         }
+        boolean nativeApp = service.oauthNativeState(provider, params.get("state"));
         try {
             AccountStore.AuthResult result = service.oauthFinish(provider, params);
-            setSessionCookie(exchange, result);
-            HttpUtil.redirect(exchange, appendQuery(appUrl, "auth", "success", "provider", provider));
+            if (nativeApp) {
+                String ticket = nativeOAuthTickets.issue(result);
+                HttpUtil.redirect(exchange, "com.momentum.app://oauth/callback?ticket=" + HttpUtil.encode(ticket));
+            } else {
+                setSessionCookie(exchange, result);
+                HttpUtil.redirect(exchange, appendQuery(appUrl, "auth", "success", "provider", provider));
+            }
         } catch (OAuthService.OAuthException | AccountStore.AuthException exception) {
-            redirectAuthError(exchange, exception.getMessage());
+            if (nativeApp) {
+                HttpUtil.redirect(exchange, "com.momentum.app://oauth/callback?error="
+                        + HttpUtil.encode(exception.getMessage() == null ? "Sign-in failed." : exception.getMessage()));
+            } else {
+                redirectAuthError(exchange, exception.getMessage());
+            }
         }
+    }
+
+    private void handleNativeOAuthExchange(HttpExchange exchange) throws IOException {
+        requireMethod(exchange, "POST");
+        requireRate(authLimiter, exchange, "oauth-exchange");
+        Map<String, Object> body = HttpUtil.readObject(exchange, 8 * 1024);
+        String ticket = string(body.get("ticket"));
+        AccountStore.AuthResult result = nativeOAuthTickets.redeem(ticket);
+        if (result == null) {
+            HttpUtil.sendError(exchange, 401, "Sign-in link expired. Please try again.");
+            return;
+        }
+        setSessionCookie(exchange, result);
+        HttpUtil.sendJson(exchange, 200, Map.of(
+                "user", AccountStore.view(result.user()),
+                "sessionToken", result.token()));
     }
 
     private void handleDeleteAccount(HttpExchange exchange) throws IOException {
@@ -485,7 +519,7 @@ public final class MomentumServer {
             exchange.getResponseHeaders().set("Access-Control-Allow-Origin", origin);
             exchange.getResponseHeaders().set("Access-Control-Allow-Credentials", "true");
             exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type, Accept");
+            exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type, Accept, Authorization");
             exchange.getResponseHeaders().set("Access-Control-Max-Age", "600");
             exchange.getResponseHeaders().add("Vary", "Origin");
         }

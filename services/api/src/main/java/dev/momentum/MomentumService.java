@@ -110,6 +110,14 @@ public final class MomentumService {
         return oauth.authorizationUrl(provider);
     }
 
+    public String oauthAuthorizationUrl(String provider, boolean nativeApp) {
+        return oauth.authorizationUrl(provider, nativeApp);
+    }
+
+    public boolean oauthNativeState(String provider, String state) {
+        return oauth.nativeState(provider, state);
+    }
+
     public AccountStore.AuthResult oauthFinish(String provider, Map<String, String> params) {
         return oauth.finish(provider, params);
     }

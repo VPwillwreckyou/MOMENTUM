@@ -23,6 +23,8 @@ import { validateEmail, validatePassword } from '../lib/validation';
 import { ApiError, apiUrl } from '../lib/api';
 import { SyncPanel } from '../components/account/SyncPanel';
 import { formatDate } from '../lib/dates';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 function GoogleIcon() {
   return (
@@ -43,7 +45,7 @@ const OAUTH_ICONS: Record<string, React.ReactNode> = {
 
 export function AuthPage() {
   const [params, setParams] = useSearchParams();
-  const { user, providers, loading, apiReachable, login, register, logout, deleteAccount, refresh } = useAuth();
+  const { user, providers, loading, apiReachable, nativeOAuthError, clearNativeOAuthError, login, register, logout, deleteAccount, refresh } = useAuth();
   const { settings, toast, exportGoalBackup } = useMomentum();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [name, setName] = useState('');
@@ -95,6 +97,24 @@ export function AuthPage() {
       setParams(next, { replace: true });
     }
   }, [params, refresh, setParams, toast]);
+
+  useEffect(() => {
+    if (!nativeOAuthError) return;
+    setServerError(nativeOAuthError);
+    clearNativeOAuthError();
+  }, [nativeOAuthError, clearNativeOAuthError]);
+
+  const startProviderSignIn = async (event: React.MouseEvent<HTMLAnchorElement>, providerId: string, label: string, configured: boolean) => {
+    handleOAuthClick(providerId, label, configured);
+    if (!Capacitor.isNativePlatform() || !configured) return;
+    event.preventDefault();
+    setServerError(null);
+    try {
+      await Browser.open({ url: apiUrl(`/api/auth/oauth/${providerId}?native=1`) });
+    } catch {
+      setServerError(`${label} sign-in could not be opened. Check the account service address in Settings and try again.`);
+    }
+  };
 
   const submit = async () => {
     const errors: Record<string, string> = {};
@@ -343,7 +363,7 @@ export function AuthPage() {
                     href={apiUrl(`/api/auth/oauth/${provider.id}`)}
                     className="oauth-button"
                     title={`Continue with ${provider.label}`}
-                    onClick={() => handleOAuthClick(provider.id, provider.label, true)}
+                    onClick={(event) => { void startProviderSignIn(event, provider.id, provider.label, true); }}
                   >
                     {OAUTH_ICONS[provider.id] ?? <UserRound size={16} />}
                     <span>{provider.label}</span>
