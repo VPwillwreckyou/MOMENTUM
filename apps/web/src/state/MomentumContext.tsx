@@ -14,7 +14,6 @@ import type {
   AttachmentMeta,
   Category,
   CategoryIcon,
-  AIPlan,
   Goal,
   GoalDraft,
   Milestone,
@@ -42,7 +41,6 @@ import { getAttachmentBlob } from '../lib/db';
 import {
   addMilestone as addMilestoneMutation,
   addTask as addTaskMutation,
-  applyPlanToGoal,
   createGoal,
   deleteMilestone as deleteMilestoneMutation,
   deleteTask as deleteTaskMutation,
@@ -57,8 +55,7 @@ import {
 const DELETION_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
 interface MomentumActions {
-  createGoal: (draft: GoalDraft, options?: { aiGenerated?: boolean }) => Goal;
-  createGoalFromPlan: (draft: GoalDraft, plan: AIPlan) => Goal;
+  createGoal: (draft: GoalDraft) => Goal;
   updateGoal: (id: string, patch: Partial<Goal>, activity?: string) => void;
   setGoalCompleted: (id: string, completed: boolean) => Goal | null;
   archiveGoal: (id: string) => void;
@@ -337,8 +334,8 @@ export function MomentumProvider({ children }: { children: ReactNode }) {
   );
 
   const createGoalAction = useCallback(
-    (draft: GoalDraft, options?: { aiGenerated?: boolean }): Goal => {
-      const goal = createGoal(draft, { aiGenerated: options?.aiGenerated });
+    (draft: GoalDraft): Goal => {
+      const goal = createGoal(draft);
       commitWorkspace((ws) =>
         withActivity(
           {
@@ -346,37 +343,6 @@ export function MomentumProvider({ children }: { children: ReactNode }) {
             goals: [...ws.goals, goal],
           },
           makeActivity(goal.id, 'goal-created', `Created “${goal.title}”`),
-        ),
-      );
-      return goal;
-    },
-    [commitWorkspace],
-  );
-
-  const createGoalFromPlan = useCallback(
-    (draft: GoalDraft, plan: AIPlan): Goal => {
-      const now = new Date();
-      const baseGoal = createGoal(draft, { aiGenerated: true, now });
-      const goal = applyPlanToGoal(
-        baseGoal,
-        {
-          milestones: plan.milestones.map((milestone) => ({
-            title: milestone.title,
-            description: milestone.description,
-            dueDate: milestone.dueDate,
-            tasks: milestone.tasks,
-          })),
-          tasks: plan.firstTasks,
-        },
-        now,
-      );
-      commitWorkspace((ws) =>
-        withActivity(
-          {
-            ...ws,
-            goals: [...ws.goals, goal],
-          },
-          makeActivity(goal.id, 'plan-imported', `Added AI-generated plan “${goal.title}”`),
         ),
       );
       return goal;
@@ -665,7 +631,7 @@ export function MomentumProvider({ children }: { children: ReactNode }) {
 
   const updateSettings = useCallback((patch: Partial<AppSettings>) => {
     setSettings((current) => {
-      const next = { ...current, ...patch, ai: patch.ai ? { ...current.ai, ...patch.ai } : current.ai };
+      const next = { ...current, ...patch };
       settingsRef.current = next;
       return next;
     });
@@ -736,7 +702,7 @@ export function MomentumProvider({ children }: { children: ReactNode }) {
         version: 2,
         exportedAt: isoNow(),
         workspace,
-        settings: { ...settings, ai: { ...settings.ai, apiKeyCipher: null, hasKey: false } },
+        settings,
         attachments: serializedAttachments,
       };
       const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
@@ -820,7 +786,6 @@ export function MomentumProvider({ children }: { children: ReactNode }) {
       storageError,
       toasts,
       createGoal: createGoalAction,
-      createGoalFromPlan,
       updateGoal,
       setGoalCompleted,
       archiveGoal,
@@ -862,7 +827,6 @@ export function MomentumProvider({ children }: { children: ReactNode }) {
       storageError,
       toasts,
       createGoalAction,
-      createGoalFromPlan,
       updateGoal,
       setGoalCompleted,
       archiveGoal,
