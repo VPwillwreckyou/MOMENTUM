@@ -23,7 +23,7 @@ function normalizeDate(value: string | null | undefined): string | null {
   return parseDateOnly(value) ? value : null;
 }
 
-export function createGoal(draft: GoalDraft, options?: { now?: Date; aiGenerated?: boolean }): Goal {
+export function createGoal(draft: GoalDraft, options?: { now?: Date }): Goal {
   const now = options?.now ?? new Date();
   const timestamp = now.toISOString();
   return {
@@ -48,7 +48,6 @@ export function createGoal(draft: GoalDraft, options?: { now?: Date; aiGenerated
     milestones: [],
     tasks: [],
     finance: draft.finance?.enabled ? draft.finance : null,
-    aiGenerated: options?.aiGenerated ?? false,
   };
 }
 
@@ -253,23 +252,4 @@ export function duplicateGoalTitle(goals: Goal[], title: string, excludeId?: str
         goal.title.trim().toLowerCase() === normalized,
     ) ?? null
   );
-}
-
-export function applyPlanToGoal(
-  goal: Goal,
-  plan: { milestones: { title: string; description?: string; dueDate?: string | null; tasks: NewTaskInput[] }[]; tasks: NewTaskInput[] },
-  now = new Date(),
-): Goal {
-  let next = goal;
-  for (const item of plan.milestones) {
-    next = addMilestone(next, { title: item.title, description: item.description, dueDate: item.dueDate }, now);
-    const milestone = next.milestones[next.milestones.length - 1];
-    for (const task of item.tasks) {
-      next = addTask(next, { ...task, milestoneId: milestone.id }, now);
-    }
-  }
-  for (const task of plan.tasks) {
-    next = addTask(next, task, now);
-  }
-  return next;
 }

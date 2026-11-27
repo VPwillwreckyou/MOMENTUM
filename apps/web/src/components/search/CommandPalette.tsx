@@ -13,7 +13,6 @@ import {
   Plus,
   Search,
   Settings,
-  Sparkles,
   Target,
   Trash2,
   Archive,
@@ -99,16 +98,6 @@ export function CommandPalette({
         },
       },
       {
-        id: 'planner',
-        title: 'Open the Goal Architect',
-        description: 'Turn an ambition into an editable AI plan',
-        icon: Sparkles,
-        run: () => {
-          onClose();
-          navigate('/planner');
-        },
-      },
-      {
         id: 'categories',
         title: 'Browse categories',
         description: 'Organize goals into personal lanes',
@@ -141,7 +130,7 @@ export function CommandPalette({
       {
         id: 'settings',
         title: 'Settings',
-        description: 'Appearance, AI providers, account and data',
+        description: 'Appearance, account and data',
         icon: Settings,
         run: () => {
           onClose();
