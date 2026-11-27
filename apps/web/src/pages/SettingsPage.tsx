@@ -9,51 +9,40 @@ import {
   Database,
   Download,
   HardDrive,
-  KeyRound,
-  Laptop,
-  LockKeyhole,
   Monitor,
   Moon,
   Palette,
-  RefreshCw,
   ShieldCheck,
-  Sparkles,
+  Target,
   Sun,
   Trash2,
   Upload,
   UserRound,
-  WandSparkles,
 } from 'lucide-react';
-import type { AIProviderId, AppSettings, AttachmentMeta, ThemeMode, Workspace } from '../state/types';
+import type { AppSettings, AttachmentMeta, ThemeMode, Workspace } from '../state/types';
 import { useMomentum } from '../state/MomentumContext';
 import { useAuth } from '../state/AuthContext';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Button } from '../components/ui/Button';
 import { Input, SegmentedControl, Toggle } from '../components/ui/Fields';
 import { ConfirmDialog, Modal } from '../components/ui/Modal';
-import { ACCENT_PRESETS, AI_PROVIDER_LOCK, PROVIDER_DEFAULTS } from '../lib/defaults';
+import { ACCENT_PRESETS } from '../lib/defaults';
 import { normalizeSettings, normalizeWorkspace } from '../lib/repository';
 import { exportGoalsToCsv, exportTasksToCsv, exportMilestonesToCsv } from '../lib/csv';
 import { resolvedApiBase, setApiUrlOverride } from '../lib/api';
-import { encryptSecret } from '../lib/vault';
 import { validateHex } from '../lib/validation';
-import { testAIConnection } from '../lib/ai';
-import { formatDate, relativeTime } from '../lib/dates';
+import { relativeTime } from '../lib/dates';
 import { SyncPanel } from '../components/account/SyncPanel';
 import { MODIFIER_LABEL } from '../lib/platform';
 
-type SectionId = 'appearance' | 'ai' | 'account' | 'data' | 'about';
+type SectionId = 'appearance' | 'account' | 'data' | 'about';
 
 const SECTIONS: { id: SectionId; label: string; icon: typeof Palette }[] = [
   { id: 'appearance', label: 'Appearance', icon: Palette },
-  { id: 'ai', label: 'AI assistant', icon: Sparkles },
   { id: 'account', label: 'Account & sync', icon: UserRound },
   { id: 'data', label: 'Data & privacy', icon: Database },
   { id: 'about', label: 'About', icon: CircleHelp },
 ];
-
-const ALL_PROVIDERS: AIProviderId[] = ['deepseek', 'openai', 'gemini', 'groq', 'ollama', 'custom'];
-const PROVIDER_ORDER: AIProviderId[] = AI_PROVIDER_LOCK ? [AI_PROVIDER_LOCK] : ALL_PROVIDERS;
 
 function formatBytes(bytes?: number): string {
   if (!bytes || bytes <= 0) return '0 MB';
@@ -70,14 +59,6 @@ export function SettingsPage() {
   const [section, setSection] = useState<SectionId>('appearance');
   const [customAccent, setCustomAccent] = useState(settings.accent);
   const [accentError, setAccentError] = useState<string | null>(null);
-  const [aiProvider, setAiProvider] = useState<AIProviderId>(settings.ai.provider);
-  const [aiModel, setAiModel] = useState(settings.ai.model);
-  const [aiBaseUrl, setAiBaseUrl] = useState(settings.ai.baseUrl);
-  const [aiKey, setAiKey] = useState('');
-  const [aiBusy, setAiBusy] = useState(false);
-  const [aiTest, setAiTest] = useState<string | null>(null);
-  const [aiError, setAiError] = useState<string | null>(null);
-  const [aiShowKey, setAiShowKey] = useState(false);
   const [storageUsage, setStorageUsage] = useState<{ usage?: number; quota?: number; persisted?: boolean } | null>(null);
   const [apiUrlDraft, setApiUrlDraft] = useState(() => resolvedApiBase());
   const [eraseOpen, setEraseOpen] = useState(false);
@@ -118,77 +99,6 @@ export function SettingsPage() {
     setAccentError(null);
     setCustomAccent(normalized);
     updateSettings({ accent: normalized });
-  };
-
-  const changeProvider = (provider: AIProviderId) => {
-    setAiProvider(provider);
-    const defaults = PROVIDER_DEFAULTS[provider];
-    setAiModel(defaults.model);
-    setAiBaseUrl(defaults.baseUrl);
-    setAiTest(null);
-    setAiError(null);
-  };
-
-  const saveAIConfig = async (runTest: boolean) => {
-    setAiError(null);
-    setAiTest(null);
-    if (!aiModel.trim()) {
-      setAiError('Enter a model name.');
-      return;
-    }
-    if (!aiBaseUrl.trim()) {
-      setAiError('Enter the provider base URL.');
-      return;
-    }
-    setAiBusy(true);
-    let attemptedConfig = settings.ai;
-    try {
-      let apiKeyCipher = settings.ai.apiKeyCipher ?? null;
-      let hasKey = settings.ai.hasKey;
-      if (aiProvider !== 'ollama' && aiKey.trim()) {
-        apiKeyCipher = await encryptSecret(aiKey.trim());
-        hasKey = true;
-      }
-      if (aiProvider === 'ollama') {
-        apiKeyCipher = null;
-        hasKey = false;
-      }
-      const nextAI = {
-        ...settings.ai,
-        provider: aiProvider,
-        model: aiModel.trim(),
-        baseUrl: aiBaseUrl.trim().replace(/\/+$/, ''),
-        apiKeyCipher,
-        hasKey,
-      };
-      attemptedConfig = nextAI;
-      updateSettings({ ai: nextAI });
-      setAiKey('');
-      if (runTest) {
-        const answer = await testAIConnection(nextAI);
-        updateSettings({
-          ai: { ...nextAI, lastTestAt: new Date().toISOString(), lastTestOk: true },
-        });
-        setAiTest(answer || 'Connection successful.');
-        toast('Provider connection verified.', 'success');
-      } else {
-        toast('AI settings saved.', 'success');
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'The provider test failed.';
-      updateSettings({
-        ai: { ...attemptedConfig, lastTestAt: new Date().toISOString(), lastTestOk: false },
-      });
-      setAiError(message);
-    } finally {
-      setAiBusy(false);
-    }
-  };
-
-  const clearKey = () => {
-    updateSettings({ ai: { ...settings.ai, apiKeyCipher: null, hasKey: false, lastTestOk: null } });
-    setAiKey('');
-    toast('Stored API key removed.', 'success');
   };
 
   const handleImportFile = async (file: File | undefined) => {
@@ -260,7 +170,7 @@ export function SettingsPage() {
       <PageHeader
         eyebrow="Preferences"
         title="Settings"
-        description="Tune the workspace, connect your own AI provider, and decide exactly what leaves this device."
+        description="Tune the workspace and decide how your data is stored."
       />
 
       <div className="settings-layout">
@@ -281,7 +191,7 @@ export function SettingsPage() {
             <span className={`status-dot${apiReachable ? ' status-dot--online' : ''}`} />
             <div>
               <strong>{apiReachable ? 'Local service online' : 'Local service offline'}</strong>
-              <span>{apiReachable ? 'Accounts & AI proxy available' : 'Core app still works'}</span>
+              <span>{apiReachable ? 'Accounts & sync available' : 'Core app still works'}</span>
             </div>
           </div>
         </nav>
@@ -459,186 +369,6 @@ export function SettingsPage() {
             </div>
           </section>
 
-          <section className="settings-section" id="ai">
-            <div className="settings-section__heading">
-              <div>
-                <span className="eyebrow">Goal architect</span>
-                <h2>AI assistant</h2>
-              </div>
-              <Sparkles size={18} className="muted" />
-            </div>
-            <p className="settings-copy">
-              {AI_PROVIDER_LOCK
-                ? 'This MOMENTUM build is configured for Groq. The local Java service manages the Groq key, so AI planning works without pasting a key into the browser. Manual goal tracking always works without AI.'
-                : 'Bring your own provider. MOMENTUM is never tied to one model, and manual goal tracking works without any AI.'}
-            </p>
-
-            <div className="settings-field-block">
-              <span className="field__label">Provider</span>
-              <div className="provider-grid">
-                {PROVIDER_ORDER.map((provider) => (
-                  <button
-                    key={provider}
-                    type="button"
-                    className={`provider-option${aiProvider === provider ? ' provider-option--active' : ''}`}
-                    onClick={() => changeProvider(provider)}
-                    aria-pressed={aiProvider === provider}
-                  >
-                    <span className="provider-option__mark">{PROVIDER_DEFAULTS[provider].label.charAt(0)}</span>
-                    <span>
-                      <strong>{PROVIDER_DEFAULTS[provider].label}</strong>
-                      <small>
-                        {provider === 'ollama'
-                          ? 'Local model'
-                          : provider === 'custom'
-                            ? 'OpenAI-compatible'
-                            : 'Cloud API'}
-                      </small>
-                    </span>
-                    {aiProvider === provider ? <Check size={14} /> : null}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="form-grid form-grid--2">
-              <Input
-                label="Model"
-                value={aiModel}
-                onChange={(event) => setAiModel(event.target.value)}
-                placeholder="Model identifier"
-                hint="Use the exact model name from your provider."
-              />
-              <Input
-                label="Base URL"
-                value={aiBaseUrl}
-                onChange={(event) => setAiBaseUrl(event.target.value)}
-                placeholder="https://api.example.com/v1"
-                hint={aiProvider === 'ollama' ? 'Ollama must run on localhost:11434.' : 'Validated by the local service.'}
-              />
-            </div>
-
-            {aiProvider !== 'ollama' ? (
-              <div className="api-key-field">
-                <Input
-                  label="API key"
-                  type={aiShowKey ? 'text' : 'password'}
-                  value={aiKey}
-                  onChange={(event) => setAiKey(event.target.value)}
-                  placeholder={
-                    settings.ai.hasKey
-                      ? '•••••••• saved — enter to replace'
-                      : AI_PROVIDER_LOCK
-                        ? 'Server-managed Groq key active — optional override'
-                        : 'Paste your provider API key'
-                  }
-                  autoComplete="off"
-                  hint={
-                    AI_PROVIDER_LOCK
-                      ? 'The normal Groq key lives in the local service configuration. A key saved here is encrypted at rest and overrides it only on this device.'
-                      : 'Encrypted at rest with a non-extractable device key. Never embedded in the app.'
-                  }
-                />
-                <button
-                  type="button"
-                  className="input-reveal"
-                  onClick={() => setAiShowKey((current) => !current)}
-                  aria-label={aiShowKey ? 'Hide API key' : 'Show API key'}
-                >
-                  {aiShowKey ? <LockKeyhole size={16} /> : <KeyRound size={16} />}
-                </button>
-              </div>
-            ) : (
-              <div className="settings-callout">
-                <Laptop size={16} />
-                <div>
-                  <strong>Local inference.</strong>
-                  <p>No API key needed. Ollama requests are proxied to localhost and never leave this computer.</p>
-                </div>
-              </div>
-            )}
-
-            {aiError ? <div className="form-error-banner"><span>{aiError}</span></div> : null}
-            {aiTest ? (
-              <div className="provider-test-result">
-                <CheckCircle2Icon />
-                <div>
-                  <strong>Provider responded.</strong>
-                  <p>{aiTest}</p>
-                </div>
-              </div>
-            ) : null}
-
-            <div className="ai-actions">
-              <Button variant="primary" onClick={() => void saveAIConfig(false)} loading={aiBusy}>
-                Save provider settings
-              </Button>
-              <Button variant="secondary" icon={<RefreshCw size={15} />} onClick={() => void saveAIConfig(true)} loading={aiBusy}>
-                Save & test connection
-              </Button>
-              {settings.ai.hasKey ? (
-                <Button variant="ghost" onClick={clearKey}>
-                  Remove saved key
-                </Button>
-              ) : null}
-            </div>
-            {settings.ai.lastTestAt ? (
-              <p className="settings-fineprint">
-                Last test {relativeTime(settings.ai.lastTestAt)} · {settings.ai.lastTestOk ? 'successful' : 'failed'}
-              </p>
-            ) : null}
-
-            <div className="settings-row-group">
-              <div className="settings-row">
-                <div>
-                  <strong>AI data consent</strong>
-                  <p>
-                    {settings.ai.consentAcceptedAt
-                      ? `You accepted AI data transfer on ${formatDate(settings.ai.consentAcceptedAt.slice(0, 10), 'medium')}. Each plan request still asks for explicit consent.`
-                      : 'No consent recorded. The Goal Architect asks before every first transfer.'}
-                  </p>
-                </div>
-                {settings.ai.consentAcceptedAt ? (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      updateSettings({ ai: { ...settings.ai, consentAcceptedAt: null } });
-                      toast('AI data consent revoked.', 'info');
-                    }}
-                  >
-                    Revoke
-                  </Button>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="privacy-card">
-              <ShieldCheck size={18} />
-              <div>
-                <strong>How credentials and goal data move</strong>
-                <p>
-                  Provider keys are encrypted before being stored in IndexedDB. They are sent only to the local Java service,
-                  which forwards them with your AI request and never logs request bodies or keys. Interview answers are sent
-                  only when you press Generate. Your existing goals are never included.
-                </p>
-              </div>
-            </div>
-
-            <div className="settings-callout">
-              <CircleHelp size={16} />
-              <div>
-                <strong>{AI_PROVIDER_LOCK ? 'Provider lock.' : 'Custom providers.'}</strong>
-                <p>
-                  {AI_PROVIDER_LOCK
-                    ? 'The production build exposes Groq only so there is no ambiguity about which provider and key are in use. The Java provider architecture remains capable of additional providers behind configuration.'
-                    : 'More OpenAI-compatible providers can be enabled on the server with an explicit host allowlist. This prevents the AI proxy from becoming an SSRF path.'}{' '}
-                  See <code>docs/ARCHITECTURE.md</code>.
-                </p>
-              </div>
-            </div>
-          </section>
-
           <section className="settings-section" id="account">
             <div className="settings-section__heading">
               <div>
@@ -687,7 +417,7 @@ export function SettingsPage() {
               />
               <p className="field__hint">
                 The phone app itself is offline-first. Enter where it can reach the service running on your PC when you want
-                AI replies and encrypted sync there too: <code>http://&lt;pc-ip&gt;:8787</code> on the same Wi-Fi (run
+                Encrypted sync is available there too: <code>http://&lt;pc-ip&gt;:8787</code> on the same Wi-Fi (run
                 <code> ipconfig </code> to find it), or your Tailscale <code>100.x.x.x</code> address to use it from anywhere.
                 The browser and PWA on this PC leave it empty.
               </p>
@@ -738,7 +468,7 @@ export function SettingsPage() {
                 <span className="data-action__icon"><Download size={16} /></span>
                 <div>
                   <strong>Export backup</strong>
-                  <p>Goals, categories, notes, tasks, attachments and preferences as a portable JSON file. API keys are never included.</p>
+                  <p>Goals, categories, notes, tasks, attachments and preferences as a portable JSON file.</p>
                 </div>
                 <Button variant="secondary" size="sm" onClick={() => void exportGoalBackup()}>
                   Export JSON
@@ -810,7 +540,7 @@ export function SettingsPage() {
                 <span className="eyebrow">The product</span>
                 <h2>About MOMENTUM</h2>
               </div>
-              <WandSparkles size={18} className="muted" />
+              <Target size={18} className="muted" />
             </div>
             <div className="about-grid">
               <div className="about-mark">
@@ -819,7 +549,7 @@ export function SettingsPage() {
               <div>
                 <h3>MOMENTUM 1.0</h3>
                 <p>A local-first goal command center. Turn ambition into a plan, then keep the next move visible.</p>
-                <p className="settings-fineprint">Built with a React + TypeScript client, a dependency-free Java 21 service, IndexedDB persistence and provider-neutral AI.</p>
+                <p className="settings-fineprint">Built with a React + TypeScript client, a dependency-free Java 21 service, and IndexedDB persistence.</p>
               </div>
             </div>
             <div className="about-links">
@@ -830,11 +560,8 @@ export function SettingsPage() {
                   navigate('/');
                 }}
               >
-                <Sparkles size={15} /> Replay onboarding
+                <Target size={15} /> Replay onboarding
               </button>
-              <Link to="/planner">
-                <WandSparkles size={15} /> Open the Goal Architect
-              </Link>
               <Link to="/archive">
                 <Database size={15} /> Browse archive
               </Link>
@@ -920,13 +647,5 @@ export function SettingsPage() {
         </div>
       </Modal>
     </div>
-  );
-}
-
-function CheckCircle2Icon() {
-  return (
-    <span className="provider-test-result__icon">
-      <Check size={14} />
-    </span>
   );
 }
