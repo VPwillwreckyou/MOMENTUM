@@ -9,7 +9,6 @@ import {
   Flame,
   Goal,
   Plus,
-  Sparkles,
   Target,
   Timer,
 } from 'lucide-react';
@@ -109,10 +108,6 @@ export function DashboardPage() {
           <Button variant="primary" icon={<Plus size={16} />} onClick={openNewGoal}>
             New goal
           </Button>
-          <Link to="/planner" className="btn btn--secondary btn--md">
-            <Sparkles size={16} />
-            Plan with AI
-          </Link>
         </div>
       </header>
 
@@ -132,16 +127,12 @@ export function DashboardPage() {
             icon={<Goal size={24} />}
             eyebrow="The first move"
             title="A direction becomes momentum here."
-            description="Create a goal manually or let the Goal Architect interview you and draft an editable plan. Nothing leaves your device unless you choose to use AI."
+            description="Create a goal, then break it into milestones and tasks you can act on."
             actions={
               <>
                 <Button variant="primary" icon={<Plus size={16} />} onClick={openNewGoal}>
                   Create your first goal
                 </Button>
-                <Link to="/planner" className="btn btn--secondary btn--md">
-                  <Sparkles size={16} />
-                  Build it with AI
-                </Link>
               </>
             }
           />
@@ -158,8 +149,8 @@ export function DashboardPage() {
             </div>
             <div>
               <span>03</span>
-              <strong>Your providers</strong>
-              <p>DeepSeek, OpenAI, Gemini, Groq or a local Ollama model.</p>
+              <strong>Your pace</strong>
+              <p>Choose the next step and keep moving.</p>
             </div>
           </div>
         </section>
