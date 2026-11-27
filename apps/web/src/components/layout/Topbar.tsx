@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Search, Sparkles, UserRound, WifiOff } from 'lucide-react';
+import { Search, UserRound, WifiOff } from 'lucide-react';
 import { useAppShell } from './AppShellContext';
 import { useAuth } from '../../state/AuthContext';
 import { useOnlineStatus } from '../../lib/useOnlineStatus';
@@ -10,7 +10,6 @@ const titles: { pattern: RegExp; label: string }[] = [
   { pattern: /^\/$/, label: 'Overview' },
   { pattern: /^\/goals$/, label: 'Goals' },
   { pattern: /^\/goals\//, label: 'Goal detail' },
-  { pattern: /^\/planner/, label: 'Goal architect' },
   { pattern: /^\/categories/, label: 'Categories' },
   { pattern: /^\/archive/, label: 'Archive' },
   { pattern: /^\/trash/, label: 'Recently deleted' },
@@ -53,10 +52,6 @@ export function Topbar() {
             <span className="search-trigger__mod">{MODIFIER_LABEL}</span>K
           </kbd>
         </button>
-        <Link to="/planner" className="btn btn--ghost btn--md topbar__planner">
-          <Sparkles size={16} />
-          <span>AI architect</span>
-        </Link>
         <Link to={user ? '/settings#account' : '/auth'} className="topbar__avatar" aria-label={user ? 'Account settings' : 'Sign in'}>
           {user ? user.name.charAt(0).toUpperCase() : <UserRound size={16} />}
           <span className={`topbar__status-dot${user ? ' topbar__status-dot--online' : ''}`} />

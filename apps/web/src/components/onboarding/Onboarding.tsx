@@ -12,22 +12,17 @@ import {
   Moon,
   Plus,
   Settings2,
-  Sparkles,
   Sun,
   Target,
-  WandSparkles,
 } from 'lucide-react';
-import type { AIProviderId } from '../../state/types';
 import { useMomentum } from '../../state/MomentumContext';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Fields';
 import { LogoMark } from '../ui/Logo';
-import { ACCENT_PRESETS, AI_PROVIDER_LOCK, PROVIDER_DEFAULTS } from '../../lib/defaults';
+import { ACCENT_PRESETS } from '../../lib/defaults';
 import { toDateInput } from '../../lib/dates';
 
-const STEPS = 5;
-const ALL_PROVIDERS: AIProviderId[] = ['groq', 'deepseek', 'openai', 'gemini', 'ollama'];
-const PROVIDERS: AIProviderId[] = AI_PROVIDER_LOCK ? [AI_PROVIDER_LOCK] : ALL_PROVIDERS;
+const STEPS = 4;
 
 export function Onboarding() {
   const navigate = useNavigate();
@@ -36,16 +31,9 @@ export function Onboarding() {
   const [name, setName] = useState(settings.displayName);
   const [goalTitle, setGoalTitle] = useState('');
   const [deadline, setDeadline] = useState('');
-  const [provider, setProvider] = useState<AIProviderId>(settings.ai.provider);
 
   const complete = (createFirstGoal: boolean) => {
     updateSettings({ displayName: name.trim() });
-    if (provider !== settings.ai.provider) {
-      const defaults = PROVIDER_DEFAULTS[provider];
-      updateSettings({
-        ai: { ...settings.ai, provider, model: defaults.model, baseUrl: defaults.baseUrl },
-      });
-    }
     finishOnboarding();
     if (createFirstGoal && goalTitle.trim()) {
       const goal = createGoal({
@@ -136,7 +124,7 @@ export function Onboarding() {
               <div className="onboarding-promises">
                 <div><Target size={17} /><span><strong>Direction</strong>Goals with real structure.</span></div>
                 <div><Layers size={17} /><span><strong>Clarity</strong>Only the next move, surfaced.</span></div>
-                <div><Sparkles size={17} /><span><strong>Leverage</strong>An AI architect you control.</span></div>
+                <div><Target size={17} /><span><strong>Progress</strong>Milestones, tasks, and clear next steps.</span></div>
               </div>
               <div className="onboarding-actions">
                 <Button variant="primary" size="lg" trailingIcon={<ArrowRight size={16} />} onClick={next}>
@@ -320,65 +308,11 @@ export function Onboarding() {
 
           {step === 3 ? (
             <div className="onboarding-slide">
-              <span className="onboarding-slide__icon"><WandSparkles size={22} /></span>
-              <span className="eyebrow">The AI architect</span>
-              <h1>A thinking partner,<br />not a plan generator.</h1>
-              <p className="onboarding-slide__lead">
-                The architect interviews you first — current reality, available time, constraints — then drafts a structured
-                plan. Every milestone and task is yours to edit.
-              </p>
-
-              <div className="onboarding-choice-block">
-                <span className="field__label">Preferred provider</span>
-                <div className="onboarding-providers">
-                  {PROVIDERS.map((id) => (
-                    <button
-                      key={id}
-                      type="button"
-                      className={`onboarding-provider${provider === id ? ' is-active' : ''}`}
-                      onClick={() => setProvider(id)}
-                    >
-                      <span className="onboarding-provider__mark">{PROVIDER_DEFAULTS[id].label.charAt(0)}</span>
-                      <span>
-                        <strong>{PROVIDER_DEFAULTS[id].label}</strong>
-                        <small>
-                          {AI_PROVIDER_LOCK
-                            ? 'Configured for this build'
-                            : id === 'ollama'
-                              ? 'Local · private'
-                              : 'Bring your own key'}
-                        </small>
-                      </span>
-                      {provider === id ? <Check size={14} /> : null}
-                    </button>
-                  ))}
-                </div>
-                <p className="onboarding-provider-note">
-                  {AI_PROVIDER_LOCK
-                    ? 'Groq is the AI provider configured for this MOMENTUM build. The local service manages the key; manual goal creation always works.'
-                    : 'No key is needed now. Connect credentials later in Settings. Manual goal creation always works.'}
-                </p>
-              </div>
-
-              <div className="onboarding-note onboarding-note--privacy">
-                <LockKeyhole size={14} />
-                <span>Only interview answers you explicitly submit are sent. Existing goals never are. Keys are encrypted at rest.</span>
-              </div>
-
-              <div className="onboarding-actions">
-                <Button variant="ghost" icon={<ArrowLeft size={15} />} onClick={() => setStep(2)}>Back</Button>
-                <Button variant="primary" size="lg" trailingIcon={<ArrowRight size={16} />} onClick={next}>Continue</Button>
-              </div>
-            </div>
-          ) : null}
-
-          {step === 4 ? (
-            <div className="onboarding-slide">
               <span className="onboarding-slide__icon"><Target size={22} /></span>
               <span className="eyebrow">The first direction</span>
               <h1>Give the workspace<br />one thing to move.</h1>
               <p className="onboarding-slide__lead">
-                Optional, but a direction beats a blank page. Start with a title. You can build the plan right after.
+                Optional, but a direction beats a blank page. Start with a title, then add milestones and tasks.
               </p>
 
               <div className="onboarding-first-goal">
@@ -404,7 +338,6 @@ export function Onboarding() {
                 <span className="eyebrow">Your workspace</span>
                 <div><span>Theme</span><strong>{settings.themeMode === 'light' ? 'Light' : 'Dark'}</strong></div>
                 <div><span>Colors</span><span className="recap-accent" style={{ background: `linear-gradient(135deg, ${settings.accent}, ${settings.accentSecondary})` }} /></div>
-                <div><span>Provider</span><strong>{PROVIDER_DEFAULTS[provider].label}</strong></div>
                 <div><span>Storage</span><strong>This device</strong></div>
               </div>
 
