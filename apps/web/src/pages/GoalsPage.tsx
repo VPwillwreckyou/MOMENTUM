@@ -1,7 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ArrowDownWideNarrow, FilterX, Goal as GoalIcon, Plus, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ArrowDownWideNarrow, FilterX, Goal as GoalIcon, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { useMomentum } from '../state/MomentumContext';
 import { useAppShell } from '../components/layout/AppShellContext';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -87,10 +86,6 @@ export function GoalsPage() {
         description="Every active direction, with the evidence of your progress attached."
         actions={
           <>
-            <Link to="/planner" className="btn btn--secondary btn--md">
-              <Sparkles size={16} />
-              AI architect
-            </Link>
             <Button variant="primary" icon={<Plus size={16} />} onClick={openNewGoal}>
               New goal
             </Button>
@@ -250,9 +245,6 @@ export function GoalsPage() {
                 <Button variant="primary" icon={<Plus size={16} />} onClick={openNewGoal}>
                   Create a goal
                 </Button>
-                <Link to="/planner" className="btn btn--secondary btn--md">
-                  <Sparkles size={16} /> Plan with AI
-                </Link>
               </>
             ) : (
               <Button
