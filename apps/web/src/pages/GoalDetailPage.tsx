@@ -20,7 +20,6 @@ import {
   Plus,
   Repeat2,
   RotateCcw,
-  Sparkles,
   Target,
   Trash2,
   Undo2,
@@ -464,11 +463,6 @@ export function GoalDetailPage() {
             <CategoryLabel category={category} />
             <span className="detail-separator">/</span>
             <PriorityBadge priority={goal.priority} />
-            {goal.aiGenerated ? (
-              <span className="meta-chip meta-chip--accent">
-                <Sparkles size={12} /> AI-assisted plan
-              </span>
-            ) : null}
           </div>
           <h1>{goal.title}</h1>
           {goal.description ? <p className="detail-description">{goal.description}</p> : null}
