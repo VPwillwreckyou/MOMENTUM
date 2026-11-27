@@ -9,7 +9,8 @@ MOMENTUM uses a shared web client for all platforms. The platform shells must no
 | Web | Any modern Chromium/Firefox/Safari browser | Full desktop browser flows, responsive layout, offline reload | Cross-browser manual visual pass (especially Safari) |
 | Windows | Installable PWA + packaged Electron app | PWA offline, desktop layout, packaged embedded Java backend, Groq key, provider lock | Electron window launch/UX on an interactive desktop; NSIS/portable installer |
 | Android | Capacitor 8 native project | Web asset sync, generated project, icons/splash, responsive UI | Gradle build/emulator/device test; needs Android SDK |
-| iOS | Capacitor 8 native project | Native project generated, icons/splash | Xcode build/simulator/device test; needs macOS + Xcode |
+| iOS (Capacitor) | Capacitor 8 WebView project | Native project generated, icons/splash | Xcode build/simulator/device test; needs macOS + Xcode |
+| iOS (native SwiftUI) | SwiftUI app in `apps/ios/Momentum` | Swift sources type-check against the iOS SDK; domain logic verified by runtime checks | Interactive Xcode build, simulator UI pass, device signing |
 | Linux / macOS | Shared web client + `scripts/momentum.sh` launcher | Script syntax and command flow (unit-level); health/status logic reuses the same jar | Full on-hardware launch pass (bash, curl, browser opener behavior) |
 
 The Java API and web client are shared. Authentication, AI and encrypted sync require network access to a running Java service; goals, planning, search, backup and exports work offline.
@@ -146,7 +147,25 @@ Verification status: script logic and health/status behavior were exercised agai
 
 The Android project was generated successfully (Capacitor copied the production web assets, generated the Gradle project, launcher icons and branded splash screens). No Android SDK or emulator was available in this environment, so **no APK/AAB was compiled or installed**. The shared UI's mobile widths were verified in Chromium at 390×844 with no horizontal overflow.
 
-## 5. iOS — Capacitor 8
+## 5. iOS
+
+### 5a. Native SwiftUI app
+
+Location: `apps/ios/Momentum`. This is an independent, offline-first iPhone/iPad app written in SwiftUI — it does not embed the web client and does not talk to the Java service.
+
+Build from the repository root on a Mac:
+
+```bash
+npm run ios:native:open       # open the Xcode project
+npm run ios:native:build      # simulator build, no signing
+npm run ios:native:test       # unit tests on an available simulator
+```
+
+Xcode 16+ and iOS 16+ are required. The app implements Overview, Goals, Planner, Categories, Settings, global search, archive/trash, JSON backup/import and the same progress/momentum formulas as the web client. Data lives in Application Support as JSON; it is **not** shared with the Capacitor app or the PWA — transfer workspaces with a JSON backup. AI planning, accounts, cloud sync, attachments and PDF export are intentionally out of scope here (see `apps/ios/Momentum/README.md`).
+
+Verification in this repository: all Swift sources and the XCTest target type-check with the iOS 26 SDK (`swiftc -typecheck`, iOS 16 target); 19 runtime checks of progress, momentum, recurrence, persistence and backup round-trips pass. A full `xcodebuild` run could not be completed in the automation sandbox, so the simulator UI and device signing still need an interactive Mac.
+
+### 5b. iOS — Capacitor 8
 
 Location: `apps/mobile`, native project in `apps/mobile/ios`.
 

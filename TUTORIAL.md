@@ -61,10 +61,12 @@ MOMENTUM/
 │   │   ├── backend.cjs      ←    Starts the Java service in the background
 │   │   ├── runtime.env      ←    Groq key copy for the packaged .exe
 │   │   └── release/win-unpacked/MOMENTUM.exe  ← Packaged Electron app (doesn't run on this PC — see note below)
-│   └── mobile/              ← Android & iOS shells (Capacitor)
-│       ├── capacitor.config.ts ←    Name, app ID, which web folder to bundle
-│       ├── android/         ←    Android project (open in Android Studio)
-│       └── ios/             ←    iOS project (open in Xcode, needs a Mac)
+│   ├── mobile/              ← Android & iOS shells (Capacitor)
+│   │   ├── capacitor.config.ts ←    Name, app ID, which web folder to bundle
+│   │   ├── android/         ←    Android project (open in Android Studio)
+│   │   └── ios/             ←    iOS WebView shell (open in Xcode, needs a Mac)
+│   └── ios/                 ← Native iOS app (SwiftUI, independent of the web build)
+│       └── Momentum/        ←    Xcode project, Swift sources and unit tests
 │
 ├── services/
 │   └── api/                 ← ★ The "engine": Java service every app talks to
@@ -188,6 +190,29 @@ The result is `apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk`.
 ---
 
 ## 🍎 6. iOS / iPhone
+
+There are **two iOS apps** in this repository:
+
+| App | Where | What it is |
+| --- | --- | --- |
+| Native SwiftUI app | `apps/ios/Momentum` | Real iPhone/iPad app written in Swift. Fully offline, own local JSON storage. |
+| Capacitor shell | `apps/mobile/ios` | The web app inside a WKWebView. Same features as the browser, needs the Java service for AI/accounts. |
+
+They do not share data automatically. Use **Settings → Export JSON backup / Import JSON backup** in either app to move a workspace.
+
+### 6a. Native SwiftUI app (new)
+
+On a Mac with Xcode 16+:
+
+```
+open apps/ios/Momentum/Momentum.xcodeproj
+npm run ios:native:build       # optional: build for the simulator from the terminal
+npm run ios:native:test        # optional: run the unit tests on a simulator
+```
+
+Pick the **Momentum** scheme, choose a simulator or a connected iPhone, press **▶ Run**. For a device, select your Apple ID under **Signing & Capabilities**. Minimum iOS version: **16**. Bundle id: `com.momentum.ios`. The app includes Overview, Goals, Planner, Categories, Settings, global search, JSON backup/import, archive and a 30-day trash. More detail: `apps/ios/Momentum/README.md`.
+
+### 6b. Capacitor shell (existing)
 
 ⚠️ **Apple requires a Mac with Xcode to compile and sign iOS apps.** The iOS project is already generated, configured and synced at `apps/mobile/ios` — it just cannot be compiled from Windows.
 

@@ -21,7 +21,7 @@ MOMENTUM is a complete, working application — not a mockup. Goals, tasks, mile
 | **Web (any computer)** | Open `http://127.0.0.1:8787` in a browser whenever the service is running | Same full app as a browser tab |
 | **Linux / macOS** | In a terminal: `./scripts/momentum.sh start` | Builds if needed, starts the service, opens the browser. Use `stop`, `status` and `doctor` the same way |
 | **Android phone** | Copy `MOMENTUM-android.apk` from this folder to the phone, tap it, allow "install unknown apps", open MOMENTUM | The full app bundled natively; goals work fully offline on the phone |
-| **iPhone / iPad** | Open the site in Safari → Share → **"Add to Home Screen"** | ICON on the home screen; opens fullscreen like a native app (like Android, AI/sync need access to the service) |
+| **iPhone / iPad** | Open `apps/ios/Momentum/Momentum.xcodeproj` in Xcode on a Mac and press Run, or open the site in Safari → Share → **"Add to Home Screen"** | A real native SwiftUI app (fully offline) or the web app as a home-screen icon (AI/sync need access to the service) |
 | **Browser "install" (Chrome/Edge)** | Click the install icon in the address bar | App-like window, same as the Windows app experience |
 
 ### Keeping it happy (plain commands, from this folder in a terminal)
@@ -58,7 +58,9 @@ If something misbehaves: run `npm run doctor` — it names the problem and the c
 | Explicit encrypted device sync | Working |
 | Attachment storage | Working (local; included in JSON backup, excluded from cloud sync) |
 | Windows desktop app | Runs locally with no internet: three launchers — the `MOMENTUM` desktop shortcut / `MOMENTUM.exe`, and `Launch MOMENTUM.bat` — all start the local Java service and open a standalone app window; `MOMENTUM Website.bat` opens it as a browser tab. The packaged Electron build is present but its GUI cannot start on this Windows build (see Known limitations) |
-| Android / iOS apps | Same web app bundled natively via Capacitor. Signed debug APK at `MOMENTUM-android.apk`; the iOS Xcode project is generated and synced at `apps/mobile/ios` and builds on macOS |
+| Android app | Same web app bundled natively via Capacitor. Signed debug APK at `MOMENTUM-android.apk` |
+| iOS app (Capacitor) | Same web app in a WKWebView shell, generated and synced at `apps/mobile/ios`; builds on macOS |
+| iOS app (native SwiftUI) | Standalone offline app at `apps/ios/Momentum` with goals, tasks, milestones, progress, planner, categories, backup and the same momentum formula. Open the Xcode project on a Mac; `npm run ios:native:build` builds it |
 
 ## Architecture at a glance
 
